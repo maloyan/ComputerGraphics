@@ -9,6 +9,7 @@
 #include "EasyBMP.h"
 #include "linear.h"
 #include "argvparser.h"
+#include "matrix.h"
 
 using std::string;
 using std::vector;
@@ -26,6 +27,7 @@ typedef vector<pair<BMP*, int> > TDataSet;
 typedef vector<pair<string, int> > TFileList;
 typedef vector<pair<vector<float>, int> > TFeatures;
 
+#define M_PI 3.14159265358979323846
 // Load list of files and its labels from 'data_file' and
 // stores it in 'file_list'
 void LoadFileList(const string& data_file, TFileList* file_list) {
@@ -76,18 +78,96 @@ void SavePredictions(const TFileList& file_list,
     stream.close();
 }
 
+Matrix<float> GrayScale(BMP* src_image) {
+    Matrix<float> result(src_image->TellWidth(), src_image->TellHeight());
+    for (int i = 0; i < result.n_rows; i++) {
+        for (int j = 0; j < result.n_cols; j++) {
+            result(i, j) = 0.299 * src_image->GetPixel(i, j).Red   + 
+                           0.587 * src_image->GetPixel(i, j).Green +
+                           0.114 * src_image->GetPixel(i, j).Blue;
+        }
+    }
+    return result;
+}
+
+Matrix<float> Custom(Matrix<float> src_image, Matrix<float> kernel) {
+
+    int hight = (kernel.n_rows - 1) / 2;
+    int width = (kernel.n_cols - 1) / 2;
+
+    Matrix<float> ans(src_image.n_rows, src_image.n_cols);
+
+    for (uint i = hight; i < ans.n_rows - hight; i++) {
+        for (uint j = width; j < ans.n_cols - width; j++) {
+            float value = 0;
+            for(uint x = 0; x < kernel.n_rows; x++) {
+                for (uint y = 0; y < kernel.n_cols; y++) {
+                    value += kernel(x, y) * ans(i + x - hight, j + y - width);
+                }
+            }
+            ans(i - hight, j - width) = value;
+        }   
+    }
+
+    return ans;
+}
+
+Matrix<float> Sobel_x(Matrix<float> src_image) {
+    Matrix<float> kernel = {{-1, 0, 1}};
+    return Custom(src_image, kernel);
+}
+
+Matrix<float> Sobel_y(Matrix<float> src_image) {
+    Matrix<float> kernel = {{ 1 },
+                             { 0 },
+                             {-1 }};
+    return Custom(src_image, kernel);
+}
+
 // Exatract features from dataset.
 // You should implement this function by yourself =)
 void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
     for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) {
         
-        // PLACE YOUR CODE HERE
-        // Remove this sample code and place your feature extraction code here
-        vector<float> one_image_features;
-        one_image_features.push_back(1.0);
-        features->push_back(make_pair(one_image_features, 1));
-        // End of sample code
+        Matrix<float> img = GrayScale(data_set[image_idx].first);
+        Matrix<float> s_x = Sobel_x(img);
+        Matrix<float> s_y = Sobel_y(img);
 
+        Matrix<float> gradient(s_x.n_rows, s_x.n_cols);
+        Matrix<float> teta(s_x.n_rows, s_x.n_cols);
+
+        for (uint i = 0; i < s_x.n_rows; i++) {
+            for (uint j = 0; j < s_x.n_cols; j++) {
+                gradient(i, j) = sqrt(s_x(i, j) * s_x(i, j) + s_y(i, j) * s_y(i, j));
+                teta(i, j)     = atan2(s_y(i, j) , s_x(i, j));
+            }
+        }
+
+        vector<float> one_image_features;
+        uint sectors   = 16;
+        uint cell_size = 8;
+        uint overlap   = cell_size / 2;
+        for (uint i = 0; i < gradient.n_rows; i += overlap) {
+            for (uint j = 0; j < gradient.n_cols; j += overlap) {
+                vector<float> gradHist(sectors);
+                for (uint l = i; l < min(i + cell_size, gradient.n_rows); l++) {
+                    for (uint k = j; k < min(j + cell_size, gradient.n_cols); k++) {
+                        int index = max(0, min(sectors - 1, round((teta(l, k) + M_PI) / (2 * M_PI * sectors))));
+                        gradHist[index] += gradient(l, k);
+                    }
+                }
+
+                float sum = 0;
+                for (auto &x : gradHist) {
+                    sum += x * x;
+                }
+                for (auto &x : gradHist) {
+                    x /= sqrt(sum);
+                }
+                copy(gradHist.begin(), gradHist.end(), back_inserter(one_image_features));
+            }
+        }
+        features->push_back(make_pair(one_image_features, data_set[image_idx].second));
     }
 }
 
