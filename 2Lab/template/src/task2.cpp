@@ -20,6 +20,8 @@ using std::make_pair;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::max;
+using std::min;
 
 using CommandLineProcessing::ArgvParser;
 
@@ -27,7 +29,6 @@ typedef vector<pair<BMP*, int> > TDataSet;
 typedef vector<pair<string, int> > TFileList;
 typedef vector<pair<vector<float>, int> > TFeatures;
 
-#define M_PI 3.14159265358979323846
 // Load list of files and its labels from 'data_file' and
 // stores it in 'file_list'
 void LoadFileList(const string& data_file, TFileList* file_list) {
@@ -80,8 +81,8 @@ void SavePredictions(const TFileList& file_list,
 
 Matrix<float> GrayScale(BMP* src_image) {
     Matrix<float> result(src_image->TellWidth(), src_image->TellHeight());
-    for (int i = 0; i < result.n_rows; i++) {
-        for (int j = 0; j < result.n_cols; j++) {
+    for (uint i = 0; i < result.n_rows; i++) {
+        for (uint j = 0; j < result.n_cols; j++) {
             result(i, j) = 0.299 * src_image->GetPixel(i, j).Red   + 
                            0.587 * src_image->GetPixel(i, j).Green +
                            0.114 * src_image->GetPixel(i, j).Blue;
@@ -113,14 +114,18 @@ Matrix<float> Custom(Matrix<float> src_image, Matrix<float> kernel) {
 }
 
 Matrix<float> Sobel_x(Matrix<float> src_image) {
-    Matrix<float> kernel = {{-1, 0, 1}};
+    Matrix<float> kernel(1, 3);
+    kernel(0, 0) = -1;
+    kernel(0, 1) =  0;
+    kernel(0, 2) =  1;
     return Custom(src_image, kernel);
 }
 
 Matrix<float> Sobel_y(Matrix<float> src_image) {
-    Matrix<float> kernel = {{ 1 },
-                             { 0 },
-                             {-1 }};
+    Matrix<float> kernel(3, 1);
+    kernel(0, 0) =  1;
+    kernel(1, 0) =  0;
+    kernel(2, 0) = -1;
     return Custom(src_image, kernel);
 }
 
@@ -144,15 +149,15 @@ void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
         }
 
         vector<float> one_image_features;
-        uint sectors   = 16;
-        uint cell_size = 8;
-        uint overlap   = cell_size / 2;
+        int sectors   = 16;
+        int cell_size = 8;
+        int overlap   = cell_size / 2;
         for (uint i = 0; i < gradient.n_rows; i += overlap) {
             for (uint j = 0; j < gradient.n_cols; j += overlap) {
                 vector<float> gradHist(sectors);
                 for (uint l = i; l < min(i + cell_size, gradient.n_rows); l++) {
                     for (uint k = j; k < min(j + cell_size, gradient.n_cols); k++) {
-                        int index = max(0, min(sectors - 1, round((teta(l, k) + M_PI) / (2 * M_PI * sectors))));
+                        int index = max(0, min(sectors - 1, static_cast<int>(round((teta(l, k) + M_PI) / (2 * M_PI * sectors)))));
                         gradHist[index] += gradient(l, k);
                     }
                 }
