@@ -22,12 +22,22 @@ using std::cerr;
 using std::endl;
 using std::max;
 using std::min;
+////////
+using std::tuple;
+using std::get;
+using std::tie;
+using std::make_tuple;
+///////
 
 using CommandLineProcessing::ArgvParser;
 
 typedef vector<pair<BMP*, int> > TDataSet;
 typedef vector<pair<string, int> > TFileList;
 typedef vector<pair<vector<float>, int> > TFeatures;
+
+///////
+typedef Matrix<tuple<uint, uint, uint>> Image;
+///////
 
 // Load list of files and its labels from 'data_file' and
 // stores it in 'file_list'
@@ -79,15 +89,61 @@ void SavePredictions(const TFileList& file_list,
     stream.close();
 }
 
-Matrix<float> GrayScale(BMP* src_image) {
-    Matrix<float> result(src_image->TellWidth(), src_image->TellHeight());
-    for (uint i = 0; i < result.n_rows; i++) {
-        for (uint j = 0; j < result.n_cols; j++) {
-            result(i, j) = 0.299 * src_image->GetPixel(i, j).Red   + 
-                           0.587 * src_image->GetPixel(i, j).Green +
-                           0.114 * src_image->GetPixel(i, j).Blue;
+///////////
+
+void save_image(const Image &im, const char *path)
+{
+    BMP out;
+    out.SetSize(im.n_cols, im.n_rows);
+
+    uint r, g, b;
+    RGBApixel p;
+    p.Alpha = 255;
+    for (uint i = 0; i < im.n_rows; ++i) {
+        for (uint j = 0; j < im.n_cols; ++j) {
+            tie(r, g, b) = im(i, j);
+            p.Red = r; p.Green = g; p.Blue = b;
+            out.SetPixel(j, i, p);
         }
     }
+
+    if (!out.WriteToFile(path))
+        throw string("Error writing file ") + string(path);
+}
+
+
+void printMat(Matrix<float> mat) {
+    Image img(mat.n_rows, mat.n_cols);
+    for(uint i = 0; i < mat.n_rows; i++) {
+        for(uint j = 0; j < mat.n_cols; j++) {
+            img(i, j) = make_tuple(mat(i, j), mat(i, j), mat(i, j));
+        }
+    }
+    save_image(img, "/home/narek/img.bmp");
+}
+//////////
+
+float pixelCheck(float pixel, float a, float b) {
+    if (pixel < a) {
+        return a;
+    } else if (pixel > b) {
+        return b;
+    } else {
+        return pixel;
+    }
+}
+
+Matrix<float> GrayScale(BMP* src_image) {
+    Matrix<float> result(src_image->TellHeight(), src_image->TellWidth());
+    
+    for (uint i = 0; i < result.n_rows; i++) {
+        for (uint j = 0; j < result.n_cols; j++) {
+            result(i, j) = 0.299 * src_image->GetPixel(j, i).Red   + 
+                           0.587 * src_image->GetPixel(j, i).Green +
+                           0.114 * src_image->GetPixel(j, i).Blue;
+        }
+    }
+
     return result;
 }
 
@@ -103,10 +159,10 @@ Matrix<float> Custom(Matrix<float> src_image, Matrix<float> kernel) {
             float value = 0;
             for(uint x = 0; x < kernel.n_rows; x++) {
                 for (uint y = 0; y < kernel.n_cols; y++) {
-                    value += kernel(x, y) * ans(i + x - hight, j + y - width);
+                    value += kernel(x, y) * src_image(i + x - hight, j + y - width);
                 }
             }
-            ans(i - hight, j - width) = value;
+            ans(i - hight, j - width) = pixelCheck(value, 0, 255);
         }   
     }
 
@@ -115,41 +171,50 @@ Matrix<float> Custom(Matrix<float> src_image, Matrix<float> kernel) {
 
 Matrix<float> Sobel_x(Matrix<float> src_image) {
     Matrix<float> kernel(1, 3);
-    kernel(0, 0) = -1;
-    kernel(0, 1) =  0;
-    kernel(0, 2) =  1;
+    kernel(0, 0) = -1.0;
+    kernel(0, 1) =  0.0;
+    kernel(0, 2) =  1.0;
     return Custom(src_image, kernel);
 }
 
 Matrix<float> Sobel_y(Matrix<float> src_image) {
     Matrix<float> kernel(3, 1);
-    kernel(0, 0) =  1;
-    kernel(1, 0) =  0;
-    kernel(2, 0) = -1;
+    kernel(0, 0) =  1.0;
+    kernel(1, 0) =  0.0;
+    kernel(2, 0) = -1.0;
     return Custom(src_image, kernel);
 }
-
+/*
+vector<float> LBP(Matrix<float> src_image) {
+    vector<float> ans;
+    for (uint i = 0; i < src_image.n_rows; ) {
+        for (uint j = 0; j < src_image.n_cols; j += overlap) {
+        
+}
+*/
 // Exatract features from dataset.
 // You should implement this function by yourself =)
 void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
-    for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) {
-        
+    for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) { 
+    //size_t image_idx = 0;
         Matrix<float> img = GrayScale(data_set[image_idx].first);
+
         Matrix<float> s_x = Sobel_x(img);
         Matrix<float> s_y = Sobel_y(img);
 
         Matrix<float> gradient(s_x.n_rows, s_x.n_cols);
         Matrix<float> teta(s_x.n_rows, s_x.n_cols);
 
+
         for (uint i = 0; i < s_x.n_rows; i++) {
             for (uint j = 0; j < s_x.n_cols; j++) {
                 gradient(i, j) = sqrt(s_x(i, j) * s_x(i, j) + s_y(i, j) * s_y(i, j));
-                teta(i, j)     = atan2(s_y(i, j) , s_x(i, j));
+                teta(i, j)     = atan2(s_y(i, j) , s_x(i, j)) * 180 / M_PI;
             }
         }
 
         vector<float> one_image_features;
-        int sectors   = 16;
+        int sectors   = 10;
         int cell_size = 8;
         int overlap   = cell_size / 2;
         for (uint i = 0; i < gradient.n_rows; i += overlap) {
@@ -157,7 +222,8 @@ void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
                 vector<float> gradHist(sectors);
                 for (uint l = i; l < min(i + cell_size, gradient.n_rows); l++) {
                     for (uint k = j; k < min(j + cell_size, gradient.n_cols); k++) {
-                        int index = max(0, min(sectors - 1, static_cast<int>(round((teta(l, k) + M_PI) / (2 * M_PI * sectors)))));
+                        int sec_num = teta(l, k) / sectors;
+                        int index = max(0, min(sectors - 1, sec_num));
                         gradHist[index] += gradient(l, k);
                     }
                 }
@@ -166,12 +232,18 @@ void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
                 for (auto &x : gradHist) {
                     sum += x * x;
                 }
-                for (auto &x : gradHist) {
-                    x /= sqrt(sum);
+                if (sum != 0) {
+                    for (auto &x : gradHist) {
+                        x /= sqrt(sum);
+                    }
                 }
+
                 copy(gradHist.begin(), gradHist.end(), back_inserter(one_image_features));
             }
         }
+
+        //vector<float> lbp = LBP(img);
+
         features->push_back(make_pair(one_image_features, data_set[image_idx].second));
     }
 }
