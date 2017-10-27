@@ -182,7 +182,23 @@ vector<float> Histogram(Matrix<float> teta, Matrix<float> gradient) {
     return result;
 }
 
-vector<float> Hog(BMP* src_image) {
+vector<float> Color(BMP* src_image, uint i_start, uint i_end, uint j_start, uint j_end) {
+    vector<float> result(3);
+    for (uint i = i_start; i < i_end; i++) {
+        for (uint j = j_start; j < j_end; j++) {
+            cout << i << " " << j << endl;
+            result[0] += src_image->GetPixel(j, i).Red;
+            result[1] += src_image->GetPixel(j, i).Green;
+            result[2] += src_image->GetPixel(j, i).Blue;
+        }
+    }
+    for (uint i = 0; i < 3; i++) {
+        result[i] /= (src_image->TellHeight() *  src_image->TellWidth() * 255);
+    }
+    return result;
+}
+
+vector<float> Hog_Color_LBP(BMP* src_image) {
     
     Matrix<float> gray = GrayScale(src_image);
     Matrix<float> s_x  = Sobel_x  (gray);
@@ -193,39 +209,45 @@ vector<float> Hog(BMP* src_image) {
 
     uint iStep = gray.n_rows / SIZE;
     uint jStep = gray.n_cols / SIZE;
-    //cout << iStep << " " << jStep << endl;
+
     uint cnt   = 0;
     for (uint i = 0; i < gray.n_rows; i += iStep) {
         for (uint j = 0; j < gray.n_cols; j += jStep) {
-            //cout << i << "\t" << j << "\t" << cnt << endl;
-            vector<float> tmp;
+
+            vector<float> tmp, tmpCol;
             if ((((cnt + 1) % SIZE) == 0) && (cnt >= SIZE * (SIZE - 1))) {
                 //cout << 1 << endl;
                 tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j), 
                                 gradient.submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
+                tmpCol = Color (src_image,         i, j, gray.n_rows,     gray.n_cols);
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
-                //getclr(clr[cnt++], dataImg.submatrix(i, j, h - i, w - j));
                 break;
             } else if (((cnt + 1) % SIZE) == 0) {
                 //cout << 2 << endl;
-                tmp = Histogram(teta    .submatrix(i, j, iStep, gray.n_cols - j), 
-                                gradient.submatrix(i, j, iStep, gray.n_cols - j));
+                tmp = Histogram(teta    .submatrix(i, j, iStep,     gray.n_cols - j), 
+                                gradient.submatrix(i, j, iStep,     gray.n_cols - j));
+                tmpCol = Color (src_image,         i, j, i + iStep, gray.n_cols);
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
-                //getclr(clr[cnt++], dataImg.submatrix(i, j, hstep, w - j));
                 break;
             } else if (cnt >= SIZE * (SIZE - 1)) {
                 //cout << 3 << endl;
                 tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, jStep), 
                                 gradient.submatrix(i, j, gray.n_rows - i, jStep));
+                tmpCol = Color (src_image,         i, j, gray.n_rows,     jStep + j);
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
-                //getclr(clr[cnt++], dataImg.submatrix(i, j, h - i, wstep));
             }
             else {
                 //cout << 4 << endl;
                 tmp = Histogram(teta    .submatrix(i, j, iStep, jStep), 
                                 gradient.submatrix(i, j, iStep, jStep));
+                //cout << i << " " << j << " " << iStep << " " << jStep << endl;
+                tmpCol = Color (src_image,         i, j, iStep + i, jStep + j);
+                cout << src_image->TellHeight() << " " << src_image->TellWidth() << endl;
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
-                //getclr(clr[cnt++], dataImg.submatrix(i, j, hstep, wstep));
             }
             result.insert(result.end(), tmp.begin(), tmp.end());
             
@@ -240,7 +262,7 @@ vector<float> Hog(BMP* src_image) {
 // You should implement this function by yourself =)
 void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
     for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) { 
-        vector<float> one_image_features = Hog(data_set[image_idx].first);
+        vector<float> one_image_features = Hog_Color_LBP(data_set[image_idx].first);
 
         features->push_back(make_pair(one_image_features, data_set[image_idx].second));
     }
