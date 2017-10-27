@@ -12,7 +12,7 @@
 using std::vector;
 using std::pair;
 using std::string;
-using std::auto_ptr;
+using std::unique_ptr;
 
 typedef vector<pair<vector<float>, int> > TFeatures;
 typedef vector<int> TLabels;
@@ -21,15 +21,15 @@ typedef vector<int> TLabels;
 // Encapsulates 'struct model' from liblinear
 class TModel {
         // Pointer to liblinear model;
-    auto_ptr<struct model> model_;
+    unique_ptr<struct model> model_;
  public:
         // Basic constructor
-    TModel(): model_(NULL) {}
+    TModel(): model_(nullptr) {}
         // Construct class by liblinear model
     TModel(struct model* model): model_(model) {}
         // Operator = for liblinear model
     TModel& operator=(struct model* model) {
-        model_ = auto_ptr<struct model>(model);
+        model_ = unique_ptr<struct model>(model);
         return *this;
     }
         // Save model to file
@@ -39,7 +39,7 @@ class TModel {
     }
         // Load model from file
     void Load(const string& model_file) {
-        model_ = auto_ptr<struct model>(load_model(model_file.c_str()));
+        model_ = unique_ptr<struct model>(load_model(model_file.c_str()));
     }
         // Get pointer to liblinear model
     struct model* get() const {
@@ -64,8 +64,8 @@ struct TClassifierParams {
         C = 0.1;
         eps = 1e-4;
         nr_weight = 0;
-        weight_label = NULL;
-        weight = NULL;
+        weight_label = nullptr;
+        weight = nullptr;
     }
 };
 

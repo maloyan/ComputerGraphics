@@ -27,6 +27,7 @@ using std::tuple;
 using std::get;
 using std::tie;
 using std::make_tuple;
+using std::numeric_limits;
 ///////
 
 using CommandLineProcessing::ArgvParser;
@@ -37,6 +38,7 @@ typedef vector<pair<vector<float>, int> > TFeatures;
 
 ///////
 typedef Matrix<tuple<uint, uint, uint>> Image;
+#define SIZE 8
 ///////
 
 // Load list of files and its labels from 'data_file' and
@@ -89,50 +91,6 @@ void SavePredictions(const TFileList& file_list,
     stream.close();
 }
 
-///////////
-
-void save_image(const Image &im, const char *path)
-{
-    BMP out;
-    out.SetSize(im.n_cols, im.n_rows);
-
-    uint r, g, b;
-    RGBApixel p;
-    p.Alpha = 255;
-    for (uint i = 0; i < im.n_rows; ++i) {
-        for (uint j = 0; j < im.n_cols; ++j) {
-            tie(r, g, b) = im(i, j);
-            p.Red = r; p.Green = g; p.Blue = b;
-            out.SetPixel(j, i, p);
-        }
-    }
-
-    if (!out.WriteToFile(path))
-        throw string("Error writing file ") + string(path);
-}
-
-
-void printMat(Matrix<float> mat) {
-    Image img(mat.n_rows, mat.n_cols);
-    for(uint i = 0; i < mat.n_rows; i++) {
-        for(uint j = 0; j < mat.n_cols; j++) {
-            img(i, j) = make_tuple(mat(i, j), mat(i, j), mat(i, j));
-        }
-    }
-    save_image(img, "/home/narek/img.bmp");
-}
-//////////
-
-float pixelCheck(float pixel, float a, float b) {
-    if (pixel < a) {
-        return a;
-    } else if (pixel > b) {
-        return b;
-    } else {
-        return pixel;
-    }
-}
-
 Matrix<float> GrayScale(BMP* src_image) {
     Matrix<float> result(src_image->TellHeight(), src_image->TellWidth());
     
@@ -147,102 +105,142 @@ Matrix<float> GrayScale(BMP* src_image) {
     return result;
 }
 
-Matrix<float> Custom(Matrix<float> src_image, Matrix<float> kernel) {
+Matrix<float> Sobel_x(Matrix<float> src_image) {
+    Matrix<float> result(src_image.n_rows, src_image.n_cols);
 
-    int hight = (kernel.n_rows - 1) / 2;
-    int width = (kernel.n_cols - 1) / 2;
-
-    Matrix<float> ans(src_image.n_rows, src_image.n_cols);
-
-    for (uint i = hight; i < ans.n_rows - hight; i++) {
-        for (uint j = width; j < ans.n_cols - width; j++) {
-            float value = 0;
-            for(uint x = 0; x < kernel.n_rows; x++) {
-                for (uint y = 0; y < kernel.n_cols; y++) {
-                    value += kernel(x, y) * src_image(i + x - hight, j + y - width);
-                }
+    for (uint i = 0; i < src_image.n_rows; i++) {
+        for (uint j = 0; j < src_image.n_cols; j++) {
+            if (i == 0) {
+                result(i, j) = src_image(1, j)     - src_image(src_image.n_rows - 1, j);
+            } else if (i == src_image.n_rows - 1) {
+                result(i, j) = src_image(0, j)     - src_image(i - 1, j);
+            } else {
+                result(i, j) = src_image(i + 1, j) - src_image(i - 1, j);
             }
-            ans(i - hight, j - width) = pixelCheck(value, 0, 255);
-        }   
+        }
     }
 
-    return ans;
-}
-
-Matrix<float> Sobel_x(Matrix<float> src_image) {
-    Matrix<float> kernel(1, 3);
-    kernel(0, 0) = -1.0;
-    kernel(0, 1) =  0.0;
-    kernel(0, 2) =  1.0;
-    return Custom(src_image, kernel);
+    return result;
 }
 
 Matrix<float> Sobel_y(Matrix<float> src_image) {
-    Matrix<float> kernel(3, 1);
-    kernel(0, 0) =  1.0;
-    kernel(1, 0) =  0.0;
-    kernel(2, 0) = -1.0;
-    return Custom(src_image, kernel);
+    Matrix<float> result(src_image.n_rows, src_image.n_cols);
+
+    for (uint i = 0; i < src_image.n_rows; i++) {
+        for (uint j = 0; j < src_image.n_cols; j++) {
+            if (j == 0) {
+                result(i, j) = src_image(i, 1)     - src_image(i, src_image.n_cols - 1);
+            } else if (j == src_image.n_cols - 1) {
+                result(i, j) = src_image(i, 0)     - src_image(i, j - 1);
+            } else {
+                result(i, j) = src_image(i, j + 1) - src_image(i, j - 1);
+            }
+        }
+    }
+
+    return result;
 }
-/*
-vector<float> LBP(Matrix<float> src_image) {
-    vector<float> ans;
-    for (uint i = 0; i < src_image.n_rows; ) {
-        for (uint j = 0; j < src_image.n_cols; j += overlap) {
-        
+
+Matrix<float> Gradient(Matrix<float> s_x, Matrix<float> s_y) {
+    Matrix<float> result(s_x.n_rows, s_x.n_cols);
+    for (uint i = 0; i < result.n_rows; i++) {
+        for(uint j = 0; j < result.n_cols; j++) {
+            result(i, j) = sqrt(s_x(i, j) * s_x(i, j) + s_y(i, j) * s_y(i, j));
+        } 
+    }
+    return result;
 }
-*/
+
+Matrix<float> Angel(Matrix<float> s_x, Matrix<float> s_y) {
+    Matrix<float> result(s_x.n_rows, s_x.n_cols);
+    for (uint i = 0; i < result.n_rows; i++) {
+        for(uint j = 0; j < result.n_cols; j++) {
+            result(i, j) = atan2(s_y(i, j), s_x(i, j));
+        } 
+    }
+    return result;   
+}
+
+vector<float> Histogram(Matrix<float> teta, Matrix<float> gradient) {
+    vector<float> result(SIZE);
+    for (uint i = 0; i < gradient.n_rows; i++) {
+        for (uint j = 0; j < gradient.n_cols; j++) {
+            uint index = round((teta(i, j) + M_PI) * SIZE / 2 / M_PI);
+            result[index % SIZE] += gradient(i, j);
+        }
+    }
+    double sum = 0;
+    for (uint i = 0; i < SIZE; i++) {
+        sum += result[i] * result[i];
+    }
+    sum = sqrt(sum);
+    if (sum > 0) {
+        for (uint i = 0; i < SIZE; i++) {
+            result[i] /= sum;
+        }
+    }
+    return result;
+}
+
+vector<float> Hog(BMP* src_image) {
+    
+    Matrix<float> gray = GrayScale(src_image);
+    Matrix<float> s_x  = Sobel_x  (gray);
+    Matrix<float> s_y  = Sobel_y  (gray);
+    Matrix<float> gradient = Gradient(s_x, s_y);
+    Matrix<float> teta     = Angel   (s_x, s_y);
+    vector<float> result;
+
+    uint iStep = gray.n_rows / SIZE;
+    uint jStep = gray.n_cols / SIZE;
+    //cout << iStep << " " << jStep << endl;
+    uint cnt   = 0;
+    for (uint i = 0; i < gray.n_rows; i += iStep) {
+        for (uint j = 0; j < gray.n_cols; j += jStep) {
+            //cout << i << "\t" << j << "\t" << cnt << endl;
+            vector<float> tmp;
+            if ((((cnt + 1) % SIZE) == 0) && (cnt >= SIZE * (SIZE - 1))) {
+                //cout << 1 << endl;
+                tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j), 
+                                gradient.submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
+                cnt++;
+                //getclr(clr[cnt++], dataImg.submatrix(i, j, h - i, w - j));
+                break;
+            } else if (((cnt + 1) % SIZE) == 0) {
+                //cout << 2 << endl;
+                tmp = Histogram(teta    .submatrix(i, j, iStep, gray.n_cols - j), 
+                                gradient.submatrix(i, j, iStep, gray.n_cols - j));
+                cnt++;
+                //getclr(clr[cnt++], dataImg.submatrix(i, j, hstep, w - j));
+                break;
+            } else if (cnt >= SIZE * (SIZE - 1)) {
+                //cout << 3 << endl;
+                tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, jStep), 
+                                gradient.submatrix(i, j, gray.n_rows - i, jStep));
+                cnt++;
+                //getclr(clr[cnt++], dataImg.submatrix(i, j, h - i, wstep));
+            }
+            else {
+                //cout << 4 << endl;
+                tmp = Histogram(teta    .submatrix(i, j, iStep, jStep), 
+                                gradient.submatrix(i, j, iStep, jStep));
+                cnt++;
+                //getclr(clr[cnt++], dataImg.submatrix(i, j, hstep, wstep));
+            }
+            result.insert(result.end(), tmp.begin(), tmp.end());
+            
+        }
+        if (cnt - 1 >= SIZE * (SIZE - 1))
+            break;
+    }
+    return result;
+}
+
 // Exatract features from dataset.
 // You should implement this function by yourself =)
 void ExtractFeatures(const TDataSet& data_set, TFeatures* features) {
     for (size_t image_idx = 0; image_idx < data_set.size(); ++image_idx) { 
-    //size_t image_idx = 0;
-        Matrix<float> img = GrayScale(data_set[image_idx].first);
-
-        Matrix<float> s_x = Sobel_x(img);
-        Matrix<float> s_y = Sobel_y(img);
-
-        Matrix<float> gradient(s_x.n_rows, s_x.n_cols);
-        Matrix<float> teta(s_x.n_rows, s_x.n_cols);
-
-
-        for (uint i = 0; i < s_x.n_rows; i++) {
-            for (uint j = 0; j < s_x.n_cols; j++) {
-                gradient(i, j) = sqrt(s_x(i, j) * s_x(i, j) + s_y(i, j) * s_y(i, j));
-                teta(i, j)     = atan2(s_y(i, j) , s_x(i, j)) * 180 / M_PI;
-            }
-        }
-
-        vector<float> one_image_features;
-        int sectors   = 10;
-        int cell_size = 8;
-        int overlap   = cell_size / 2;
-        for (uint i = 0; i < gradient.n_rows; i += overlap) {
-            for (uint j = 0; j < gradient.n_cols; j += overlap) {
-                vector<float> gradHist(sectors);
-                for (uint l = i; l < min(i + cell_size, gradient.n_rows); l++) {
-                    for (uint k = j; k < min(j + cell_size, gradient.n_cols); k++) {
-                        int sec_num = teta(l, k) / sectors;
-                        int index = max(0, min(sectors - 1, sec_num));
-                        gradHist[index] += gradient(l, k);
-                    }
-                }
-
-                float sum = 0;
-                for (auto &x : gradHist) {
-                    sum += x * x;
-                }
-                if (sum != 0) {
-                    for (auto &x : gradHist) {
-                        x /= sqrt(sum);
-                    }
-                }
-
-                copy(gradHist.begin(), gradHist.end(), back_inserter(one_image_features));
-            }
-        }
-
-        //vector<float> lbp = LBP(img);
+        vector<float> one_image_features = Hog(data_set[image_idx].first);
 
         features->push_back(make_pair(one_image_features, data_set[image_idx].second));
     }
