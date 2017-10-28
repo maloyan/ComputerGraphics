@@ -38,7 +38,7 @@ typedef vector<pair<vector<float>, int> > TFeatures;
 
 ///////
 typedef Matrix<tuple<uint, uint, uint>> Image;
-#define SIZE 8
+#define SIZE 10
 ///////
 
 // Load list of files and its labels from 'data_file' and
@@ -182,11 +182,11 @@ vector<float> Histogram(Matrix<float> teta, Matrix<float> gradient) {
     return result;
 }
 
-vector<float> Color(BMP* src_image, uint i_start, uint i_end, uint j_start, uint j_end) {
+vector<float> Color(BMP* src_image, uint i_start, uint j_start, uint i_end, uint j_end) {
     vector<float> result(3);
     for (uint i = i_start; i < i_end; i++) {
         for (uint j = j_start; j < j_end; j++) {
-            cout << i << " " << j << endl;
+            ///cout << i << " " << j << endl;
             result[0] += src_image->GetPixel(j, i).Red;
             result[1] += src_image->GetPixel(j, i).Green;
             result[2] += src_image->GetPixel(j, i).Blue;
@@ -214,12 +214,13 @@ vector<float> Hog_Color_LBP(BMP* src_image) {
     for (uint i = 0; i < gray.n_rows; i += iStep) {
         for (uint j = 0; j < gray.n_cols; j += jStep) {
 
-            vector<float> tmp, tmpCol;
+            vector<float> tmp, tmpCol, tmpLBP;
             if ((((cnt + 1) % SIZE) == 0) && (cnt >= SIZE * (SIZE - 1))) {
                 //cout << 1 << endl;
                 tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j), 
                                 gradient.submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
                 tmpCol = Color (src_image,         i, j, gray.n_rows,     gray.n_cols);
+                tmpLBP = LBP   (gray    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
                 tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
                 break;
@@ -228,6 +229,7 @@ vector<float> Hog_Color_LBP(BMP* src_image) {
                 tmp = Histogram(teta    .submatrix(i, j, iStep,     gray.n_cols - j), 
                                 gradient.submatrix(i, j, iStep,     gray.n_cols - j));
                 tmpCol = Color (src_image,         i, j, i + iStep, gray.n_cols);
+                tmpLBP = LBP   (gray    .submatrix(i, j, iStep,     gray.n_cols - j));
                 tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
                 break;
@@ -236,6 +238,7 @@ vector<float> Hog_Color_LBP(BMP* src_image) {
                 tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, jStep), 
                                 gradient.submatrix(i, j, gray.n_rows - i, jStep));
                 tmpCol = Color (src_image,         i, j, gray.n_rows,     jStep + j);
+                tmpLBP = LBP   (gray    .submatrix(i, j, gray.n_rows - i, jStep));
                 tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
             }
@@ -245,7 +248,8 @@ vector<float> Hog_Color_LBP(BMP* src_image) {
                                 gradient.submatrix(i, j, iStep, jStep));
                 //cout << i << " " << j << " " << iStep << " " << jStep << endl;
                 tmpCol = Color (src_image,         i, j, iStep + i, jStep + j);
-                cout << src_image->TellHeight() << " " << src_image->TellWidth() << endl;
+                tmpLBP = LBP   (gray    .submatrix(i, j, iStep, jStep));
+                //cout << src_image->TellHeight() << " " << src_image->TellWidth() << endl;
                 tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
             }
