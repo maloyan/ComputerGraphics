@@ -30,7 +30,7 @@ typedef vector<pair<string, int> > TFileList;
 typedef vector<pair<vector<float>, int> > TFeatures;
 
 ///////
-#define SIZE 10
+#define SIZE 8
 ///////
 
 // Load list of files and its labels from 'data_file' and
@@ -196,14 +196,10 @@ vector<float> LBP(Matrix<float> src_image) {
             uint dec = 0;
             for (int k = -1; k < 2; k++) {
                 for (int l = -1; l < 2; l++) {
-                    if (k == 0 && l == 0) {
-                        continue;
-                    } else {
-                        if (src_image(i + k, j + l) > src_image(i, j)) {
-                            dec = (dec << 1) + 1;
-                        } else {
-                            dec <<= 1;
-                        }
+                    if (!(k == 0 && l == 0)) {
+                        dec = dec << 1;
+                        if (src_image(i + k, j + l) >= src_image(i, j))
+                            dec++;
                     }
                 }
             }
@@ -232,39 +228,39 @@ vector<float> Hog_Color_LBP(BMP* src_image) {
 
             vector<float> tmp, tmpCol, tmpLBP;
             if ((((cnt + 1) % SIZE) == 0) && (cnt >= SIZE * (SIZE - 1))) {
-                //tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j), 
-                //                gradient.submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
+                tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j), 
+                                gradient.submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
                 tmpLBP = LBP   (gray    .submatrix(i, j, gray.n_rows - i, gray.n_cols - j));
-                //tmpCol = Color (src_image,         i, j, gray.n_rows,     gray.n_cols);
+                tmpCol = Color (src_image,         i, j, gray.n_rows,     gray.n_cols);
                 tmp.insert(tmp.end(), tmpLBP.begin(), tmpLBP.end());
-                //tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
                 break;
             } else if (((cnt + 1) % SIZE) == 0) {
-                //tmp = Histogram(teta    .submatrix(i, j, iStep,     gray.n_cols - j), 
-                //                gradient.submatrix(i, j, iStep,     gray.n_cols - j));
+                tmp = Histogram(teta    .submatrix(i, j, iStep,     gray.n_cols - j), 
+                                gradient.submatrix(i, j, iStep,     gray.n_cols - j));
                 tmpLBP = LBP   (gray    .submatrix(i, j, iStep,     gray.n_cols - j));
-                //tmpCol = Color (src_image,         i, j, i + iStep, gray.n_cols);
+                tmpCol = Color (src_image,         i, j, i + iStep, gray.n_cols);
                 tmp.insert(tmp.end(), tmpLBP.begin(), tmpLBP.end());
-                //tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
                 break;
             } else if (cnt >= SIZE * (SIZE - 1)) {
-                //tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, jStep), 
-                //                gradient.submatrix(i, j, gray.n_rows - i, jStep));
+                tmp = Histogram(teta    .submatrix(i, j, gray.n_rows - i, jStep), 
+                                gradient.submatrix(i, j, gray.n_rows - i, jStep));
                 tmpLBP = LBP   (gray    .submatrix(i, j, gray.n_rows - i, jStep));
-                //tmpCol = Color (src_image,         i, j, gray.n_rows,     jStep + j);
+                tmpCol = Color (src_image,         i, j, gray.n_rows,     jStep + j);
                 tmp.insert(tmp.end(), tmpLBP.begin(), tmpLBP.end());
-                //tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
             }
             else {
-                //tmp = Histogram(teta    .submatrix(i, j, iStep, jStep), 
-                //                gradient.submatrix(i, j, iStep, jStep));
+                tmp = Histogram(teta    .submatrix(i, j, iStep, jStep), 
+                                gradient.submatrix(i, j, iStep, jStep));
                 tmpLBP = LBP   (gray    .submatrix(i, j, iStep, jStep));
-                //tmpCol = Color (src_image,         i, j, iStep + i, jStep + j);
+                tmpCol = Color (src_image,         i, j, iStep + i, jStep + j);
                 tmp.insert(tmp.end(), tmpLBP.begin(), tmpLBP.end());
-                //tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
+                tmp.insert(tmp.end(), tmpCol.begin(), tmpCol.end());
                 cnt++;
             }
             result.insert(result.end(), tmp.begin(), tmp.end());
