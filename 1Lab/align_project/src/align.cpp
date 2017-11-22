@@ -4,7 +4,7 @@
 using namespace std;
 
 #define RANGE 15
-#define BORDER 13
+#define BORDER 10
 #define M_PI 3.14159265358979323846
 
 struct shiftCord
