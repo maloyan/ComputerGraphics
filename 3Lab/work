@@ -1,0 +1,1 @@
+make && cd ./build/bin/ && ./wifi_map

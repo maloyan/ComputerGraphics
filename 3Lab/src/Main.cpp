@@ -1,48 +1,18 @@
 #include "Tracer.h"
 #include "stdio.h"
 
-#include "TinyObjLoader.h"
 #include <vector>
 #include <string>
 #include <iostream>
 using namespace std;
 
 
-static bool TestLoadObj(const char* filename, const char* basepath = NULL,
-                        bool triangulate = true) {
-  std::cout << "Loading " << filename << std::endl;
-
-  tinyobj::attrib_t attrib;
-  std::vector<tinyobj::shape_t> shapes;
-  std::vector<tinyobj::material_t> materials;
-
-  std::string err;
-  bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename,
-                              basepath, triangulate);
-
-  if (!err.empty()) {
-    std::cerr << err << std::endl;
-  }
-
-  if (!ret) {
-    printf("Failed to load/parse .obj.\n");
-    return false;
-  }
-
- // PrintInfo(attrib, shapes, materials);
-
-  return true;
-}
-
-
 int main(int argc, char** argv)
 {
-
-  TestLoadObj("models/Flat.obj", "models/", false);
-
+  SCamera camera;
+  SLight  light;
   CTracer tracer;
   CScene scene;
-
   int xRes = 1024;  // Default resolution
   int yRes = 768;
 
@@ -68,6 +38,13 @@ int main(int argc, char** argv)
   }
   else
     printf("No config! Using default parameters.\r\n");
+
+  camera.m_pos   = glm::vec3(0, 0, 0);
+  camera.m_right = glm::vec3(0, 0, 0);
+  camera.m_up    = glm::vec3(0, 0, 0);
+
+  light.m_pos    = glm::vec3(0, 0, 0);
+  light.m_intensity = 0;
 
   tracer.m_pScene = &scene;
   tracer.RenderImage(xRes, yRes);

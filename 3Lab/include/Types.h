@@ -1,7 +1,8 @@
 #pragma once
 
 #include "glm/glm.hpp"
-#include "vector"
+#include <vector>
+#include <string>
 
 struct SRay
 {
@@ -26,4 +27,28 @@ struct SMesh
 {
   std::vector<glm::vec3> m_vertices;  // vertex positions
   std::vector<glm::uvec3> m_triangles;  // vetrex indices
+};
+
+struct SLight
+{
+  glm::vec3 m_pos;
+  uint      m_intensity;
+};
+
+class CScene
+{
+private:
+  //std::vector<Figure*> figures;
+  SLight Scene_light;
+  SCamera Scene_camera;
+  glm::vec3 Top_right;
+  glm::vec3 Bot_left;
+public:
+  //CModel* model;
+  CScene(std::string path);
+  //CScene(CModel& loaded_model);
+  //void LoadModel(const char* path);
+  //void SaveImageToFile(const Image &im, const char *path);
+  //Image LoadImageFromFile(const char *path);
+  //void PlaceRouter();
 };

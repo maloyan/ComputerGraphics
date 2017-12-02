@@ -57,7 +57,7 @@ OBJFILES := $(call src_to_obj, $(CXXFILES))
 
 # Alias to make all targets.
 .PHONY: all
-all: $(BIN_DIR)/visualize	
+all: $(BIN_DIR)/wifi_map	
 
 # Suppress makefile rebuilding.
 Makefile: ;
@@ -78,7 +78,7 @@ bridge.touch: $(wildcard $(BRIDGE_INCLUDE_DIR)/*) \
 	echo "include deps.mk" > $@
 
 # Rules for compiling targets
-$(BIN_DIR)/visualize: $(OBJFILES) bridge.touch	
+$(BIN_DIR)/wifi_map: $(OBJFILES) bridge.touch	
 	$(CXX) $(CXXFLAGS) $(filter %.o, $^) -o $@ $(LDFLAGS)
 	cp $(BRIDGE_DIR)/config_file $(BIN_DIR)/
 
