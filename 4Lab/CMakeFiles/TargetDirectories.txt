@@ -1,0 +1,3 @@
+/home/narek/ComputerGraphics/4Lab/CMakeFiles/rebuild_cache.dir
+/home/narek/ComputerGraphics/4Lab/CMakeFiles/edit_cache.dir
+/home/narek/ComputerGraphics/4Lab/CMakeFiles/main.dir
