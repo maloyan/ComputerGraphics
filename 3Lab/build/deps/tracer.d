@@ -1,4 +1,4 @@
-build/obj/Types.o build/deps/Types.d: src/Types.cpp include/Types.h \
+build/obj/tracer.o build/deps/tracer.d: src/tracer.cpp include/tracer.h \
  bridge/include/glm/glm.hpp bridge/include/glm/detail/_fixes.hpp \
  bridge/include/glm/detail/setup.hpp \
  bridge/include/glm/detail/../simd/platform.h bridge/include/glm/fwd.hpp \
@@ -82,7 +82,15 @@ build/obj/Types.o build/deps/Types.d: src/Types.cpp include/Types.h \
  bridge/include/glm/detail/../ext/vec1.hpp \
  bridge/include/glm/detail/../ext/../detail/type_vec1.inl \
  bridge/include/glm/detail/func_integer_simd.inl \
- bridge/include/glm/detail/../simd/integer.h \
+ bridge/include/glm/detail/../simd/integer.h include/types.h \
+ bridge/include/glm/gtc/matrix_transform.hpp \
+ bridge/include/glm/gtc/../gtc/constants.hpp \
+ bridge/include/glm/gtc/../gtc/../detail/setup.hpp \
+ bridge/include/glm/gtc/../gtc/constants.inl \
+ bridge/include/glm/gtc/matrix_transform.inl include/matrix.h \
+ include/matrix.hpp bridge/include/EasyBMP.h \
+ bridge/include/EasyBMP_DataStructures.h bridge/include/EasyBMP_BMP.h \
+ bridge/include/EasyBMP_VariousBMPutilities.h include/scene.h \
  bridge/include/assimp/Importer.hpp bridge/include/assimp/types.h \
  bridge/include/assimp/defs.h bridge/include/assimp/config.h \
  bridge/include/assimp/vector3.h bridge/include/assimp/vector2.h \
@@ -97,4 +105,5 @@ build/obj/Types.o build/deps/Types.d: src/Types.cpp include/Types.h \
  bridge/include/assimp/mesh.h bridge/include/assimp/light.h \
  bridge/include/assimp/camera.h bridge/include/assimp/material.h \
  bridge/include/assimp/material.inl bridge/include/assimp/anim.h \
- bridge/include/assimp/metadata.h bridge/include/assimp/postprocess.h
+ bridge/include/assimp/metadata.h bridge/include/assimp/postprocess.h \
+ include/geometry.h include/model.h

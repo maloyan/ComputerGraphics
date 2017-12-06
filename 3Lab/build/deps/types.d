@@ -1,4 +1,4 @@
-build/obj/Main.o build/deps/Main.d: src/Main.cpp include/Tracer.h \
+build/obj/types.o build/deps/types.d: src/types.cpp include/types.h \
  bridge/include/glm/glm.hpp bridge/include/glm/detail/_fixes.hpp \
  bridge/include/glm/detail/setup.hpp \
  bridge/include/glm/detail/../simd/platform.h bridge/include/glm/fwd.hpp \
@@ -82,4 +82,12 @@ build/obj/Main.o build/deps/Main.d: src/Main.cpp include/Tracer.h \
  bridge/include/glm/detail/../ext/vec1.hpp \
  bridge/include/glm/detail/../ext/../detail/type_vec1.inl \
  bridge/include/glm/detail/func_integer_simd.inl \
- bridge/include/glm/detail/../simd/integer.h include/Types.h
+ bridge/include/glm/detail/../simd/integer.h \
+ bridge/include/glm/gtc/matrix_transform.hpp \
+ bridge/include/glm/gtc/../gtc/constants.hpp \
+ bridge/include/glm/gtc/../gtc/../detail/setup.hpp \
+ bridge/include/glm/gtc/../gtc/constants.inl \
+ bridge/include/glm/gtc/matrix_transform.inl include/matrix.h \
+ include/matrix.hpp bridge/include/EasyBMP.h \
+ bridge/include/EasyBMP_DataStructures.h bridge/include/EasyBMP_BMP.h \
+ bridge/include/EasyBMP_VariousBMPutilities.h

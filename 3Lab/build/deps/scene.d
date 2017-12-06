@@ -1,6 +1,21 @@
-build/obj/Tracer.o build/deps/Tracer.d: src/Tracer.cpp include/Tracer.h \
- bridge/include/glm/glm.hpp bridge/include/glm/detail/_fixes.hpp \
- bridge/include/glm/detail/setup.hpp \
+build/obj/scene.o build/deps/scene.d: src/scene.cpp include/scene.h \
+ bridge/include/assimp/Importer.hpp bridge/include/assimp/types.h \
+ bridge/include/assimp/defs.h bridge/include/assimp/config.h \
+ bridge/include/assimp/vector3.h bridge/include/assimp/vector2.h \
+ bridge/include/assimp/./Compiler/pushpack1.h \
+ bridge/include/assimp/./Compiler/poppack1.h \
+ bridge/include/assimp/color4.h bridge/include/assimp/matrix3x3.h \
+ bridge/include/assimp/matrix4x4.h bridge/include/assimp/quaternion.h \
+ bridge/include/assimp/vector2.inl bridge/include/assimp/vector3.inl \
+ bridge/include/assimp/color4.inl bridge/include/assimp/quaternion.inl \
+ bridge/include/assimp/matrix3x3.inl bridge/include/assimp/matrix4x4.inl \
+ bridge/include/assimp/scene.h bridge/include/assimp/texture.h \
+ bridge/include/assimp/mesh.h bridge/include/assimp/light.h \
+ bridge/include/assimp/camera.h bridge/include/assimp/material.h \
+ bridge/include/assimp/material.inl bridge/include/assimp/anim.h \
+ bridge/include/assimp/metadata.h bridge/include/assimp/postprocess.h \
+ include/geometry.h include/types.h bridge/include/glm/glm.hpp \
+ bridge/include/glm/detail/_fixes.hpp bridge/include/glm/detail/setup.hpp \
  bridge/include/glm/detail/../simd/platform.h bridge/include/glm/fwd.hpp \
  bridge/include/glm/detail/type_int.hpp \
  bridge/include/glm/detail/setup.hpp \
@@ -82,4 +97,13 @@ build/obj/Tracer.o build/deps/Tracer.d: src/Tracer.cpp include/Tracer.h \
  bridge/include/glm/detail/../ext/vec1.hpp \
  bridge/include/glm/detail/../ext/../detail/type_vec1.inl \
  bridge/include/glm/detail/func_integer_simd.inl \
- bridge/include/glm/detail/../simd/integer.h include/Types.h
+ bridge/include/glm/detail/../simd/integer.h \
+ bridge/include/glm/gtc/matrix_transform.hpp \
+ bridge/include/glm/gtc/../gtc/constants.hpp \
+ bridge/include/glm/gtc/../gtc/../detail/setup.hpp \
+ bridge/include/glm/gtc/../gtc/constants.inl \
+ bridge/include/glm/gtc/matrix_transform.inl include/matrix.h \
+ include/matrix.hpp bridge/include/EasyBMP.h \
+ bridge/include/EasyBMP_DataStructures.h bridge/include/EasyBMP_BMP.h \
+ bridge/include/EasyBMP_VariousBMPutilities.h include/model.h \
+ include/tracer.h
