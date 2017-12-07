@@ -10,7 +10,8 @@
 #include <stdlib.h>
 #include <iostream>
 using namespace std;
-static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 128; //размеры окна
+static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 33; //размеры окна
+
 static int filling = 0;
 static bool keys[1024]; //массив состояний кнопок - нажата/не нажата
 static GLfloat lastX = 400, lastY = 300; //исходное положение мыши
@@ -18,10 +19,14 @@ static bool firstMouse = true;
 static bool g_captureMouse         = true;  // Мышка захвачена нашим приложением или нет?
 static bool g_capturedMouseJustNow = false;
 
+#define ROUGHNESS 0.2;
+
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
-Camera camera(float3(0.0f, 5.0f, 30.0f));
+float yy[TERRAIN_SIZE][TERRAIN_SIZE];
+
+Camera camera(float3(11.193, 7.35573, 11.9907));
 
 //функция для обработки нажатий на кнопки клавиатуры
 void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -117,59 +122,53 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
     camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 // Алгоритм для генерации ландшафта
- 
-void squareDiamond(float yy[][TERRAIN_SIZE], int stepsize, int size) {
-  int halfstep = stepsize / 2;
- 
-  for (int y = 0; y < size; y += stepsize)
-  {
-    for (int x = 0; x < size; x += stepsize)
-    {
-      yy[y][x] = 1;
-    }
+float randTerrain(int size) {
+  return (float)(rand() % size - size / 4) * ROUGHNESS;
+}
+float checkYY(int i, int j) {
+  if(i < 0 || j < 0 || i > TERRAIN_SIZE - 1 || j > TERRAIN_SIZE - 1) {
+    return 0;
+  } else {
+    return yy[i][j];
   }
-    /*
-      cout << "!!!!!!!!!!" << endl;
-      cout << x << " " << y << endl;
-      // a     b 
-      //
-      //    x
-      //
-      // c     d
-      int hs = stepsize / 2;
-      double a = yy[x-hs][y-hs];
-      double b = yy[x+hs][y-hs];
-      double c = yy[x-hs][y+hs];
-      double d = yy[x+hs][y+hs];
-      yy[x][y] = ((a + b + c + d) / 4.0) + (rand() % 3);
-    }
-  }
- 
-  for (int y = 0; y < size; y += stepsize)
-  {
-    for (int x = 0; x < size; x += stepsize)
-    {
-      cout << "=========" << endl;
-      cout << x << " " << y << endl;
-      //   c
-      //
-      //a  x  b
-      //
-      //   d
-      int hs = size / 2;
-      double a = yy[x-hs+halfstep][y];
-      double b = yy[x+hs+halfstep][y];
-      double c = yy[x+halfstep][y-hs];
-      double d = yy[x+halfstep][y-hs];
-      yy[x+halfstep][y] = ((a + b + c + d) / 4.0) + (rand() % 3);
+}
+void squareDiamond(float yy[][TERRAIN_SIZE], int start_i, int start_j, int size) {
 
-      a = yy[x-hs][y+halfstep];
-      b = yy[x+hs][y+halfstep];
-      c = yy[x][y-hs+halfstep];
-      d = yy[x][y-hs+halfstep];
-      yy[x][y+halfstep] = ((a + b + c + d) / 4.0) + (rand() % 3);
-    }
-  }*/
+  if (size != 0) {
+    // Центр квадрата
+    yy[start_i + size / 2][start_j + size / 2] = (yy[start_i][start_j]               + 
+                                                  yy[start_i + size][start_j + size] + 
+                                                  yy[start_i + size][start_j]        + 
+                                                  yy[start_i][start_j + size]) / 4   +
+                                                  randTerrain(size);
+    // Середины сторон
+    yy[start_i][start_j + size / 2] = (checkYY(start_i - size / 2, start_j + size / 2) +
+                                       checkYY(start_i + size / 2, start_j + size / 2) +
+                                       checkYY(start_i, start_j)                       +
+                                       checkYY(start_i, start_j + size)) / 4           +
+                                       randTerrain(size);
+    
+    yy[start_i + size / 2][start_j] = (checkYY(start_i + size, start_j)                     +
+                                       checkYY(start_i, start_j)                            +
+                                       checkYY(start_i + size / 2, start_j - size / 2)      +
+                                       checkYY(start_i + size / 2, start_j + size / 2)) / 4 +
+                                       randTerrain(size);
+
+    yy[start_i + size][start_j + size / 2] = (checkYY(start_i + size * 3 / 2, start_j + size / 2) +
+                                              checkYY(start_i + size / 2,     start_j + size / 2) +
+                                              checkYY(start_i + size, start_j)                    +
+                                              checkYY(start_i + size, start_j + size)) / 4        +
+                                              randTerrain(size);
+    yy[start_i + size / 2][start_j + size]= (checkYY(start_i + size, start_j + size)                  +
+                                             checkYY(start_i, start_j + size)                         +
+                                             checkYY(start_i + size / 2, start_j + size / 2)          +
+                                             checkYY(start_i + size / 2, start_j + size * 3 / 2)) / 4 +
+                                             randTerrain(size);
+    squareDiamond(yy, start_i, start_j, size / 2);
+    squareDiamond(yy, start_i, start_j + size / 2, size / 2);
+    squareDiamond(yy, start_i + size / 2, start_j, size / 2);
+    squareDiamond(yy, start_i + size / 2, start_j + size / 2, size / 2);
+  }
 }
 /*
 \brief создать triangle strip плоскость и загрузить её в шейдерную программу
@@ -200,17 +199,12 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   std::vector<GLuint> indices_vec; //вектор индексов вершин для передачи шейдерной программе
   indices_vec.reserve(numIndices);
 
-  float yy[TERRAIN_SIZE][TERRAIN_SIZE];
-  int samplesize = rows;
-  double scale = 1.0;
- /*
-  while (samplesize > 1)
-  {
-    cout << samplesize << endl;
-    squareDiamond(yy, samplesize, rows);
-    samplesize /= 2;
-  }*/
-   squareDiamond(yy, 1, rows);
+  yy[0][0]                               = randTerrain(TERRAIN_SIZE);
+  yy[0][TERRAIN_SIZE - 1]                = randTerrain(TERRAIN_SIZE);
+  yy[TERRAIN_SIZE - 1][0]                = randTerrain(TERRAIN_SIZE);
+  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = randTerrain(TERRAIN_SIZE);
+  squareDiamond(yy, 0, 0, TERRAIN_SIZE - 1);
+
   for (int z = 0; z < rows; ++z)
   {
     for (int x = 0; x < cols; ++x)
@@ -399,6 +393,7 @@ int initGL()
 
 int main(int argc, char** argv)
 {
+  srand(time(NULL));
 	if(!glfwInit())
     return -1;
 
@@ -470,7 +465,7 @@ int main(int argc, char** argv)
 		//обновляем матрицы камеры и проекции каждый кадр
     float4x4 view       = camera.GetViewMatrix();
     float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
-
+    // cout << camera.pos.x << " " << camera.pos.y << " "<< camera.pos.z << endl;
 		                //модельная матрица, определяющая положение объекта в мировом пространстве
 		float4x4 model; //начинаем с единичной матрицы
 		
