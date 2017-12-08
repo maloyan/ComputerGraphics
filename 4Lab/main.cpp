@@ -19,7 +19,7 @@ static bool firstMouse = true;
 static bool g_captureMouse         = true;  // Мышка захвачена нашим приложением или нет?
 static bool g_capturedMouseJustNow = false;
 
-#define ROUGHNESS 0.15;
+#define ROUGHNESS 0.2;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
