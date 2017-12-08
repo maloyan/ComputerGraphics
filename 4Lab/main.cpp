@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <iostream>
 using namespace std;
-static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 33; //размеры окна
+static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 257; //размеры окна
 
 static int filling = 0;
 static bool keys[1024]; //массив состояний кнопок - нажата/не нажата
@@ -19,7 +19,7 @@ static bool firstMouse = true;
 static bool g_captureMouse         = true;  // Мышка захвачена нашим приложением или нет?
 static bool g_capturedMouseJustNow = false;
 
-#define ROUGHNESS 0.2;
+#define ROUGHNESS 0.15;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
@@ -123,7 +123,7 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
 }
 // Алгоритм для генерации ландшафта
 float randTerrain(int size) {
-  return (float)(rand() % size - size / 4) * ROUGHNESS;
+  return (float)(rand() % size - size / 2) * ROUGHNESS;
 }
 float checkYY(int i, int j) {
   if(i < 0 || j < 0 || i > TERRAIN_SIZE - 1 || j > TERRAIN_SIZE - 1) {
@@ -132,42 +132,46 @@ float checkYY(int i, int j) {
     return yy[i][j];
   }
 }
-void squareDiamond(float yy[][TERRAIN_SIZE], int start_i, int start_j, int size) {
 
-  if (size != 0) {
+void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
+
+  if (size > 1) {
     // Центр квадрата
-    yy[start_i + size / 2][start_j + size / 2] = (yy[start_i][start_j]               + 
-                                                  yy[start_i + size][start_j + size] + 
-                                                  yy[start_i + size][start_j]        + 
-                                                  yy[start_i][start_j + size]) / 4   +
-                                                  randTerrain(size);
-    // Середины сторон
-    yy[start_i][start_j + size / 2] = (checkYY(start_i - size / 2, start_j + size / 2) +
-                                       checkYY(start_i + size / 2, start_j + size / 2) +
-                                       checkYY(start_i, start_j)                       +
-                                       checkYY(start_i, start_j + size)) / 4           +
-                                       randTerrain(size);
-    
-    yy[start_i + size / 2][start_j] = (checkYY(start_i + size, start_j)                     +
-                                       checkYY(start_i, start_j)                            +
-                                       checkYY(start_i + size / 2, start_j - size / 2)      +
-                                       checkYY(start_i + size / 2, start_j + size / 2)) / 4 +
-                                       randTerrain(size);
+    for (int start_i = size/2; start_i < TERRAIN_SIZE; start_i += size)
+    for (int start_j = size/2; start_j < TERRAIN_SIZE; start_j += size)
+      yy[start_i][start_j] = (yy[start_i - size / 2][start_j - size / 2]      + 
+                              yy[start_i - size / 2][start_j + size / 2]      + 
+                              yy[start_i + size / 2][start_j - size / 2]      + 
+                              yy[start_i + size / 2][start_j + size / 2]) / 4 +
+                              randTerrain(size);
 
-    yy[start_i + size][start_j + size / 2] = (checkYY(start_i + size * 3 / 2, start_j + size / 2) +
-                                              checkYY(start_i + size / 2,     start_j + size / 2) +
-                                              checkYY(start_i + size, start_j)                    +
-                                              checkYY(start_i + size, start_j + size)) / 4        +
-                                              randTerrain(size);
-    yy[start_i + size / 2][start_j + size]= (checkYY(start_i + size, start_j + size)                  +
-                                             checkYY(start_i, start_j + size)                         +
-                                             checkYY(start_i + size / 2, start_j + size / 2)          +
-                                             checkYY(start_i + size / 2, start_j + size * 3 / 2)) / 4 +
-                                             randTerrain(size);
-    squareDiamond(yy, start_i, start_j, size / 2);
-    squareDiamond(yy, start_i, start_j + size / 2, size / 2);
-    squareDiamond(yy, start_i + size / 2, start_j, size / 2);
-    squareDiamond(yy, start_i + size / 2, start_j + size / 2, size / 2);
+    // Середины сторон
+    for (int start_i = 0; start_i < TERRAIN_SIZE - 1; start_i += size)
+    for (int start_j = 0; start_j < TERRAIN_SIZE - 1; start_j += size) {
+      yy[start_i][start_j + size / 2] = (checkYY(start_i - size / 2, start_j + size / 2) +
+                                         checkYY(start_i + size / 2, start_j + size / 2) +
+                                         checkYY(start_i, start_j)                       +
+                                         checkYY(start_i, start_j + size)) / 4           +
+                                         randTerrain(size);
+      
+      yy[start_i + size / 2][start_j] = (checkYY(start_i + size, start_j)                     +
+                                         checkYY(start_i, start_j)                            +
+                                         checkYY(start_i + size / 2, start_j - size / 2)      +
+                                         checkYY(start_i + size / 2, start_j + size / 2)) / 4 +
+                                         randTerrain(size);
+
+      yy[start_i + size][start_j + size / 2] = (checkYY(start_i + size * 3 / 2, start_j + size / 2) +
+                                                checkYY(start_i + size / 2,     start_j + size / 2) +
+                                                checkYY(start_i + size, start_j)                    +
+                                                checkYY(start_i + size, start_j + size)) / 4        +
+                                                randTerrain(size);
+      yy[start_i + size / 2][start_j + size]= (checkYY(start_i + size, start_j + size)                  +
+                                               checkYY(start_i, start_j + size)                         +
+                                               checkYY(start_i + size / 2, start_j + size / 2)          +
+                                               checkYY(start_i + size / 2, start_j + size * 3 / 2)) / 4 +
+                                               randTerrain(size);
+    }
+    squareDiamond(yy, size / 2);
   }
 }
 /*
@@ -203,7 +207,7 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   yy[0][TERRAIN_SIZE - 1]                = randTerrain(TERRAIN_SIZE);
   yy[TERRAIN_SIZE - 1][0]                = randTerrain(TERRAIN_SIZE);
   yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = randTerrain(TERRAIN_SIZE);
-  squareDiamond(yy, 0, 0, TERRAIN_SIZE - 1);
+  squareDiamond(yy, TERRAIN_SIZE - 1);
 
   for (int z = 0; z < rows; ++z)
   {
