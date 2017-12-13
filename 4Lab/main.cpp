@@ -24,6 +24,8 @@ string str = "X";
 vector<string> *trees = new vector<string>();
 const float PI = 3.14, DEPTH = 6;
 float ANGLE = 20, depth = 0;
+enum {SKY_LEFT=0,SKY_BACK,SKY_RIGHT,SKY_FRONT,SKY_TOP,SKY_BOTTOM};
+unsigned int skybox[6]; //the ids for the textures
 
 #define ROUGHNESS 0.17;
 
@@ -127,69 +129,6 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
   if (keys[GLFW_KEY_D])
     camera.ProcessKeyboard(RIGHT, deltaTime);
 }
-// Подгружаем текстуры
-/*
-    struct texture {
-        int ID;
-        unsigned int target;
-    };
-    static const int _nTextures = 20;
-    struct texture _textures[_nTextures];
-    
-void set_texture(const GLuint textureIndex, int textureID, const char* uniformName, GLenum target) {
-
-    /// Create a texture if no ID was passed.
-    if(textureID < 0)
-        glGenTextures(1, (GLuint*)&textureID);
-
-    /// Bind the newly created texture to the context :
-    /// all future texture functions will modify this texture.
-    glBindTexture(target, textureID);
-
-    /// Put the texture index value in the Sampler uniform.
-    GLuint uniformID = glGetUniformLocation(_programID, uniformName);
-    glUniform1i(uniformID, textureIndex);
-
-    _textures[textureIndex].ID = textureID;
-    _textures[textureIndex].target = target;
-
-}
-
-
-void load_texture(const char * imagepath) const {
-
-    /// Read the file.
-    if(glfwLoadTexture2D(imagepath, 0)) {
-
-        /// We want to repeat the texture for texture and normal mapping.
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        /// Nice trilinear filtering.
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-    } else {
-        std::cout << "Cannot load texture file : " << imagepath << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
-void textInit() {
-  set_texture(2, -1, "sandTex", GL_TEXTURE_2D);
-  load_texture("../../textures/sand.tga");
-  set_texture(3, -1, "iceMoutainTex", GL_TEXTURE_2D);
-  load_texture("../../textures/dordona_range.tga");
-  set_texture(4, -1, "treeTex", GL_TEXTURE_2D);
-  load_texture("../../textures/Mossy_Rock.tga");
-  set_texture(5, -1, "stoneTex", GL_TEXTURE_2D);
-  load_texture("../../textures/Fault_Zone.tga");
-  set_texture(6, -1, "underWaterTex", GL_TEXTURE_2D);
-  load_texture("../../textures/under_water.tga");
-  set_texture(7, -1, "snowTex", GL_TEXTURE_2D);
-  load_texture("../../textures/snow.tga");
-}
-*/
 // Алгоритм для генерации деревьев
 /*
 void expand(float num){
@@ -518,6 +457,120 @@ int initGL()
 	return 0;
 }
 
+
+unsigned int loadTexture(const char* filename)  //load the filename named texture
+{
+  int width, height;
+  GLuint texture;
+  unsigned char* image;
+  image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  return texture;
+}
+
+void initskybox()
+{
+        skybox[SKY_LEFT]   = loadTexture("./textures/sky_left.bmp");
+        skybox[SKY_BACK]   = loadTexture("./textures/sky_back.bmp");
+        skybox[SKY_RIGHT]  = loadTexture("./textures/sky_right.bmp");
+        skybox[SKY_FRONT]  = loadTexture("./textures/sky_front.bmp");
+        skybox[SKY_TOP]    = loadTexture("./textures/sky_top.bmp");
+        skybox[SKY_BOTTOM] = loadTexture("./textures/sky_bottom.bmp");
+}
+
+void killskybox()
+{
+        glDeleteTextures(6,&skybox[0]);
+}
+
+void drawSkybox(float size)
+{
+        bool b1=glIsEnabled(GL_TEXTURE_2D);     //new, we left the textures turned on, if it was turned on
+        glDisable(GL_LIGHTING); //turn off lighting, when making the skybox
+        glDisable(GL_DEPTH_TEST);       //turn off depth texting
+        glEnable(GL_TEXTURE_2D);        //and turn on texturing
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_BACK]);  //use the texture we want
+        glBegin(GL_QUADS);      //and draw a face
+                //back face
+                glTexCoord2f(0,0);      //use the correct texture coordinate
+                glVertex3f(size/2,size/2,size/2);       //and a vertex
+                glTexCoord2f(1,0);      //and repeat it...
+                glVertex3f(-size/2,size/2,size/2);
+                glTexCoord2f(1,1);
+                glVertex3f(-size/2,-size/2,size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(size/2,-size/2,size/2);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_LEFT]);
+        glBegin(GL_QUADS);     
+                //left face
+                glTexCoord2f(0,0);
+                glVertex3f(-size/2,size/2,size/2);
+                glTexCoord2f(1,0);
+                glVertex3f(-size/2,size/2,-size/2);
+                glTexCoord2f(1,1);
+                glVertex3f(-size/2,-size/2,-size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(-size/2,-size/2,size/2);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_FRONT]);
+        glBegin(GL_QUADS);     
+                //front face
+                glTexCoord2f(1,0);
+                glVertex3f(size/2,size/2,-size/2);
+                glTexCoord2f(0,0);
+                glVertex3f(-size/2,size/2,-size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(-size/2,-size/2,-size/2);
+                glTexCoord2f(1,1);
+                glVertex3f(size/2,-size/2,-size/2);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_RIGHT]);
+        glBegin(GL_QUADS);     
+                //right face
+                glTexCoord2f(0,0);
+                glVertex3f(size/2,size/2,-size/2);
+                glTexCoord2f(1,0);
+                glVertex3f(size/2,size/2,size/2);
+                glTexCoord2f(1,1);
+                glVertex3f(size/2,-size/2,size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(size/2,-size/2,-size/2);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_TOP]);          
+        glBegin(GL_QUADS);                      //top face
+                glTexCoord2f(1,0);
+                glVertex3f(size/2,size/2,size/2);
+                glTexCoord2f(0,0);
+                glVertex3f(-size/2,size/2,size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(-size/2,size/2,-size/2);
+                glTexCoord2f(1,1);
+                glVertex3f(size/2,size/2,-size/2);
+        glEnd();
+        glBindTexture(GL_TEXTURE_2D,skybox[SKY_BOTTOM]);               
+        glBegin(GL_QUADS);     
+                //bottom face
+                glTexCoord2f(1,1);
+                glVertex3f(size/2,-size/2,size/2);
+                glTexCoord2f(0,1);
+                glVertex3f(-size/2,-size/2,size/2);
+                glTexCoord2f(0,0);
+                glVertex3f(-size/2,-size/2,-size/2);
+                glTexCoord2f(1,0);
+                glVertex3f(size/2,-size/2,-size/2);
+        glEnd();
+        glEnable(GL_LIGHTING);  //turn everything back, which we turned on, and turn everything off, which we have turned on.
+        glEnable(GL_DEPTH_TEST);
+        if(!b1)
+                glDisable(GL_TEXTURE_2D);
+}
+
 int main(int argc, char** argv)
 {
 
@@ -619,6 +672,9 @@ int main(int argc, char** argv)
   SOIL_free_image_data(image);
   glBindTexture(GL_TEXTURE_2D, 0);
 
+  //типа небо
+  initskybox();
+
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
@@ -657,8 +713,7 @@ int main(int argc, char** argv)
     program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     program.SetUniform("model",      model);
-    
-    
+
     //рисуем плоскость
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureWater);
@@ -686,6 +741,8 @@ int main(int argc, char** argv)
     glBindVertexArray(0); GL_CHECK_ERRORS;
 
     program.StopUseShader();
+
+//drawSkybox(TERRAIN_SIZE * 2);
 
 		glfwSwapBuffers(window); 
 	}
