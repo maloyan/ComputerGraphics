@@ -9,6 +9,8 @@
 #include <random>
 #include <stdlib.h>
 #include <iostream>
+#include <string>
+#include "SOIL/SOIL.h"
 using namespace std;
 static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 257; //размеры окна
 
@@ -18,15 +20,19 @@ static GLfloat lastX = 400, lastY = 300; //исходное положение �
 static bool firstMouse = true;
 static bool g_captureMouse         = true;  // Мышка захвачена нашим приложением или нет?
 static bool g_capturedMouseJustNow = false;
+string str = "X";
+vector<string> *trees = new vector<string>();
+const float PI = 3.14, DEPTH = 6;
+float ANGLE = 20, depth = 0;
 
-#define ROUGHNESS 0.2;
+#define ROUGHNESS 0.17;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
 
 float yy[TERRAIN_SIZE][TERRAIN_SIZE];
 
-Camera camera(float3(11.193, 7.35573, 11.9907));
+Camera camera(float3(11.193, 200, 11.9907));
 
 //функция для обработки нажатий на кнопки клавиатуры
 void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -121,10 +127,124 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
   if (keys[GLFW_KEY_D])
     camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+// Подгружаем текстуры
+/*
+    struct texture {
+        int ID;
+        unsigned int target;
+    };
+    static const int _nTextures = 20;
+    struct texture _textures[_nTextures];
+    
+void set_texture(const GLuint textureIndex, int textureID, const char* uniformName, GLenum target) {
+
+    /// Create a texture if no ID was passed.
+    if(textureID < 0)
+        glGenTextures(1, (GLuint*)&textureID);
+
+    /// Bind the newly created texture to the context :
+    /// all future texture functions will modify this texture.
+    glBindTexture(target, textureID);
+
+    /// Put the texture index value in the Sampler uniform.
+    GLuint uniformID = glGetUniformLocation(_programID, uniformName);
+    glUniform1i(uniformID, textureIndex);
+
+    _textures[textureIndex].ID = textureID;
+    _textures[textureIndex].target = target;
+
+}
+
+
+void load_texture(const char * imagepath) const {
+
+    /// Read the file.
+    if(glfwLoadTexture2D(imagepath, 0)) {
+
+        /// We want to repeat the texture for texture and normal mapping.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        /// Nice trilinear filtering.
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+    } else {
+        std::cout << "Cannot load texture file : " << imagepath << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+void textInit() {
+  set_texture(2, -1, "sandTex", GL_TEXTURE_2D);
+  load_texture("../../textures/sand.tga");
+  set_texture(3, -1, "iceMoutainTex", GL_TEXTURE_2D);
+  load_texture("../../textures/dordona_range.tga");
+  set_texture(4, -1, "treeTex", GL_TEXTURE_2D);
+  load_texture("../../textures/Mossy_Rock.tga");
+  set_texture(5, -1, "stoneTex", GL_TEXTURE_2D);
+  load_texture("../../textures/Fault_Zone.tga");
+  set_texture(6, -1, "underWaterTex", GL_TEXTURE_2D);
+  load_texture("../../textures/under_water.tga");
+  set_texture(7, -1, "snowTex", GL_TEXTURE_2D);
+  load_texture("../../textures/snow.tga");
+}
+*/
+// Алгоритм для генерации деревьев
+/*
+void expand(float num){
+  string ch = "";
+
+  for (int i = 0; i < str.length(); i++){
+    ch = str.at(i);
+
+    if (ch.compare("D") == 0){
+      str.replace(i, 1, "DD");
+      i = i + 1;
+    } else if (ch.compare("X") == 0){
+      
+      if (num < 0.4){
+        //LSystem.replace(i, 1, "D[LX]D[RX]LX");
+      str.replace(i, 1, "D[LXV]D[RXV]LX");
+
+      } else {
+        //LSystem.replace(i, 1, "D[RX]D[LX]RX");
+        str.replace(i, 1, "D[RXV]D[LXV]RX");
+      }
+      i = i + 13; //11
+    } 
+
+  } 
+  trees->push_back(str);
+}
+
+void draw(){
+  string ch = "";
+  string LSystem = trees->at(depth);
+  for (int i = 0; i < LSystem.length(); i++){
+    ch = LSystem.at(i);
+
+    if (ch.compare("D") == 0 || ch.compare("X") == 0){
+      drawLine();
+    } else if (ch.compare("[") == 0){
+      push();
+    } else if (ch.compare("]") == 0){
+      pop();
+    } else if (ch.compare("V") == 0){
+      leaf();
+    } else if (ch.compare("R") == 0){
+      rotR();
+    } else if (ch.compare("L") == 0){
+      rotL();
+    }
+  }
+}
+*/
 // Алгоритм для генерации ландшафта
 float randTerrain(int size) {
   return (float)(rand() % size - size / 2) * ROUGHNESS;
 }
+
 float checkYY(int i, int j) {
   if(i < 0 || j < 0 || i > TERRAIN_SIZE - 1 || j > TERRAIN_SIZE - 1) {
     return 0;
@@ -134,8 +254,6 @@ float checkYY(int i, int j) {
 }
 
 void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
-
-  if (size > 1) {
     // Центр квадрата
     for (int start_i = size/2; start_i < TERRAIN_SIZE; start_i += size)
     for (int start_j = size/2; start_j < TERRAIN_SIZE; start_j += size)
@@ -170,8 +288,18 @@ void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
                                                checkYY(start_i + size / 2, start_j + size / 2)          +
                                                checkYY(start_i + size / 2, start_j + size * 3 / 2)) / 4 +
                                                randTerrain(size);
-    }
-    squareDiamond(yy, size / 2);
+  }
+}
+
+void terrainGeneration() {
+  yy[0][0]                               = randTerrain(TERRAIN_SIZE);
+  yy[0][TERRAIN_SIZE - 1]                = randTerrain(TERRAIN_SIZE);
+  yy[TERRAIN_SIZE - 1][0]                = randTerrain(TERRAIN_SIZE);
+  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = randTerrain(TERRAIN_SIZE);
+  int size = TERRAIN_SIZE - 1;
+  while (size > 1) {
+    squareDiamond(yy, size);
+    size /= 2;
   }
 }
 /*
@@ -203,11 +331,7 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   std::vector<GLuint> indices_vec; //вектор индексов вершин для передачи шейдерной программе
   indices_vec.reserve(numIndices);
 
-  yy[0][0]                               = randTerrain(TERRAIN_SIZE);
-  yy[0][TERRAIN_SIZE - 1]                = randTerrain(TERRAIN_SIZE);
-  yy[TERRAIN_SIZE - 1][0]                = randTerrain(TERRAIN_SIZE);
-  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = randTerrain(TERRAIN_SIZE);
-  squareDiamond(yy, TERRAIN_SIZE - 1);
+  terrainGeneration();
 
   for (int z = 0; z < rows; ++z)
   {
@@ -332,7 +456,6 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   glGenBuffers(1, &vboNormals);
   glGenBuffers(1, &vboTexCoords);
 
-
   glBindVertexArray(vao); GL_CHECK_ERRORS;
   {
 
@@ -397,6 +520,7 @@ int initGL()
 
 int main(int argc, char** argv)
 {
+
   srand(time(NULL));
 	if(!glfwInit())
     return -1;
@@ -440,7 +564,61 @@ int main(int argc, char** argv)
 	shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
 	ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
+
+  //типа текстуры
+  int width, height;
+  GLuint textureGrass;
+  GLuint textureWater;
+  GLuint textureSnow;
+  GLuint textureSand;
+  GLuint textureRock;
+  unsigned char* image;
+
+  //типа зелень
+  image = SOIL_load_image("./textures/grass.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &textureGrass);
+  glBindTexture(GL_TEXTURE_2D, textureGrass);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
   
+  //типа вода
+  image = SOIL_load_image("./textures/water.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &textureWater);
+  glBindTexture(GL_TEXTURE_2D, textureWater);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  //типа снег
+  image = SOIL_load_image("./textures/snow.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &textureSnow);
+  glBindTexture(GL_TEXTURE_2D, textureSnow);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  //типа песок 
+  image = SOIL_load_image("./textures/sand.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &textureSand);
+  glBindTexture(GL_TEXTURE_2D, textureSand);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  //Типа камни
+  image = SOIL_load_image("./textures/rock.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &textureRock);
+  glBindTexture(GL_TEXTURE_2D, textureRock);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
@@ -472,15 +650,37 @@ int main(int argc, char** argv)
     // cout << camera.pos.x << " " << camera.pos.y << " "<< camera.pos.z << endl;
 		                //модельная матрица, определяющая положение объекта в мировом пространстве
 		float4x4 model; //начинаем с единичной матрицы
-		
+
     program.StartUseShader();
 
     //загружаем uniform-переменные в шейдерную программу (одинаковые для всех параллельно запускаемых копий шейдера)
     program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     program.SetUniform("model",      model);
-
+    
+    
     //рисуем плоскость
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureWater);
+    program.SetUniform("ourTexture1", 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, textureSand);
+    program.SetUniform("ourTexture2", 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, textureGrass);
+    program.SetUniform("ourTexture3", 2);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, textureRock);
+    program.SetUniform("ourTexture4", 3);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, textureSnow);
+    program.SetUniform("ourTexture5", 4);
+
+
     glBindVertexArray(vaoTriStrip);
     glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
     glBindVertexArray(0); GL_CHECK_ERRORS;

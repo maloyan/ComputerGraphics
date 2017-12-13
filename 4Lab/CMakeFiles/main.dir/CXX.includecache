@@ -65,6 +65,10 @@ stdlib.h
 -
 iostream
 -
+string
+-
+SOIL/SOIL.h
+/home/narek/ComputerGraphics/4Lab/SOIL/SOIL.h
 
 dependencies/include/GLAD/KHR/khrplatform.h
 stdint.h
