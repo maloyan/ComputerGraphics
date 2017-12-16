@@ -5,6 +5,7 @@ in vec3 vNormal;
 
 out vec4 color;
 
+uniform int       state;
 uniform sampler2D ourTexture1;
 uniform sampler2D ourTexture2;
 uniform sampler2D ourTexture3;
@@ -13,6 +14,7 @@ uniform sampler2D ourTexture5;
 
 void main()
 {
+  if (state == 1) {
   const float sandMin   = 0;
   const float sandMax   = 2;
   const float sandGross = 4;
@@ -57,4 +59,7 @@ void main()
   //mapped = (vFragPosition.y-minHeight) / (maxHeight-minHeight) * (maxColor-minColor) + minColor;
   //float kd = max(dot(vNormal, lightDir), 0.0);
   //vec4(kd * mapped, 1.0f);
+  } else if (state == 2) {
+    color = vec4(vNormal, 1.0f);
+  }
 }

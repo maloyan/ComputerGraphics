@@ -26,7 +26,7 @@ const float PI = 3.14, DEPTH = 6;
 float ANGLE = 20, depth = 0;
 enum {SKY_LEFT=0,SKY_BACK,SKY_RIGHT,SKY_FRONT,SKY_TOP,SKY_BOTTOM};
 unsigned int skybox[6]; //the ids for the textures
-
+int KEYBOARD = 1;
 #define ROUGHNESS 0.17;
 
 GLfloat deltaTime = 0.0f;
@@ -36,43 +36,48 @@ float yy[TERRAIN_SIZE][TERRAIN_SIZE];
 
 Camera camera(float3(11.193, 200, 11.9907));
 
+
+
+
 //функция для обработки нажатий на кнопки клавиатуры
 void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	//std::cout << key << std::endl;
-	switch (key)
-	{
-	case GLFW_KEY_ESCAPE: //на Esc выходим из программы
-		if (action == GLFW_PRESS)
-			glfwSetWindowShouldClose(window, GL_TRUE);
-		break;
-	case GLFW_KEY_SPACE: //на пробел переключение в каркасный режим и обратно
-		if (action == GLFW_PRESS)
-		{
-			if (filling == 0)
-			{
-				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				filling = 1;
-			}
-			else
-			{
-				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				filling = 0;
-			}
-		}
-		break;
+  //std::cout << key << std::endl;
+  switch (key)
+  {
+  case GLFW_KEY_ESCAPE: //на Esc выходим из программы
+    if (action == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, GL_TRUE);
+    break;
+  case GLFW_KEY_SPACE: //на пробел переключение в каркасный режим и обратно
+    if (action == GLFW_PRESS)
+    {
+      if (filling == 0)
+      {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        filling = 1;
+      }
+      else
+      {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        filling = 0;
+      }
+    }
+    break;
   case GLFW_KEY_1:
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    KEYBOARD = 1;
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     break;
   case GLFW_KEY_2:
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    KEYBOARD = 2;
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     break;
-	default:
-		if (action == GLFW_PRESS)
-			keys[key] = true;
-		else if (action == GLFW_RELEASE)
-			keys[key] = false;
-	}
+  default:
+    if (action == GLFW_PRESS)
+      keys[key] = true;
+    else if (action == GLFW_RELEASE)
+      keys[key] = false;
+  }
 }
 
 //функция для обработки клавиш мыши
@@ -431,48 +436,33 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   return numIndices;
 }
 
-
 int initGL()
 {
-	int res = 0;
+  int res = 0;
 
-	//грузим функции opengl через glad
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		std::cout << "Failed to initialize OpenGL context" << std::endl;
-		return -1;
-	}
+  //грузим функции opengl через glad
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+  {
+    std::cout << "Failed to initialize OpenGL context" << std::endl;
+    return -1;
+  }
 
-	//выводим в консоль некоторую информацию о драйвере и контексте opengl
-	std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
-	std::cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+  //выводим в консоль некоторую информацию о драйвере и контексте opengl
+  std::cout << "Vendor: " << glGetString(GL_VENDOR) << std::endl;
+  std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+  std::cout << "Version: " << glGetString(GL_VERSION) << std::endl;
+  std::cout << "GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
   std::cout << "Controls: "<< std::endl;
   std::cout << "press left mose button to capture/release mouse cursor  "<< std::endl;
   std::cout << "press spacebar to alternate between shaded wireframe and fill display modes" << std::endl;
   std::cout << "press ESC to exit" << std::endl;
 
-	return 0;
+  return 0;
 }
 
 
-unsigned int loadTexture(const char* filename)  //load the filename named texture
-{
-  int width, height;
-  GLuint texture;
-  unsigned char* image;
-  image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  return texture;
-}
-
+/*
 void initskybox()
 {
         skybox[SKY_LEFT]   = loadTexture("./textures/sky_left.bmp");
@@ -570,149 +560,188 @@ void drawSkybox(float size)
         if(!b1)
                 glDisable(GL_TEXTURE_2D);
 }
+*/
+
+
+GLuint loadTexture(const char* filename)  //load the filename named texture
+{
+  int width, height;
+  GLuint texture;
+  unsigned char* image;
+  image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  SOIL_free_image_data(image);
+  glBindTexture(GL_TEXTURE_2D, 0);
+  return texture;
+}
+
+void skyBox() 
+{
+  static const GLfloat g_vertex_buffer_data[] = {
+    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f, // triangle 1 : end
+    1.0f, 1.0f,-1.0f, // triangle 2 : begin
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f, // triangle 2 : end
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f,-1.0f,
+    1.0f,-1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    1.0f,-1.0f, 1.0f
+};
+
+}
 
 int main(int argc, char** argv)
 {
 
   srand(time(NULL));
-	if(!glfwInit())
+  if(!glfwInit())
     return -1;
 
-	//запрашиваем контекст opengl версии 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); 
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); 
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); 
+  //запрашиваем контекст opengl версии 3.3
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); 
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); 
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); 
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); 
 
 
   GLFWwindow*  window = glfwCreateWindow(WIDTH, HEIGHT, "OpenGL basic sample", nullptr, nullptr);
-	if (window == nullptr)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-	
-	glfwMakeContextCurrent(window); 
+  if (window == nullptr)
+  {
+    std::cout << "Failed to create GLFW window" << std::endl;
+    glfwTerminate();
+    return -1;
+  }
+  
+  glfwMakeContextCurrent(window); 
 
-	//регистрируем коллбеки для обработки сообщений от пользователя - клавиатура, мышь..
-	glfwSetKeyCallback        (window, OnKeyboardPressed);  
-	glfwSetCursorPosCallback  (window, OnMouseMove); 
+  //регистрируем коллбеки для обработки сообщений от пользователя - клавиатура, мышь..
+  glfwSetKeyCallback        (window, OnKeyboardPressed);  
+  glfwSetCursorPosCallback  (window, OnMouseMove); 
   glfwSetMouseButtonCallback(window, OnMouseButtonClicked);
-	glfwSetScrollCallback     (window, OnMouseScroll);
-	glfwSetInputMode          (window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+  glfwSetScrollCallback     (window, OnMouseScroll);
+  glfwSetInputMode          (window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
 
-	if(initGL() != 0) 
-		return -1;
-	
+  if(initGL() != 0) 
+    return -1;
+  
   //Reset any OpenGL errors which could be present for some reason
-	GLenum gl_error = glGetError();
-	while (gl_error != GL_NO_ERROR)
-		gl_error = glGetError();
+  GLenum gl_error = glGetError();
+  while (gl_error != GL_NO_ERROR)
+    gl_error = glGetError();
 
-	//создание шейдерной программы из двух файлов с исходниками шейдеров
-	//используется класс-обертка ShaderProgram
-	std::unordered_map<GLenum, std::string> shaders;
-	shaders[GL_VERTEX_SHADER]   = "vertex.glsl";
-	shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
-	ShaderProgram program(shaders); GL_CHECK_ERRORS;
-
+  //создание шейдерной программы из двух файлов с исходниками шейдеров
+  //используется класс-обертка ShaderProgram
+  std::unordered_map<GLenum, std::string> shaders;
+  shaders[GL_VERTEX_SHADER]   = "vertex.glsl";
+  shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
+  ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
   //типа текстуры
-  int width, height;
-  GLuint textureGrass;
-  GLuint textureWater;
-  GLuint textureSnow;
-  GLuint textureSand;
-  GLuint textureRock;
-  unsigned char* image;
-
-  //типа зелень
-  image = SOIL_load_image("./textures/grass.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &textureGrass);
-  glBindTexture(GL_TEXTURE_2D, textureGrass);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
-  
-  //типа вода
-  image = SOIL_load_image("./textures/water.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &textureWater);
-  glBindTexture(GL_TEXTURE_2D, textureWater);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  //типа снег
-  image = SOIL_load_image("./textures/snow.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &textureSnow);
-  glBindTexture(GL_TEXTURE_2D, textureSnow);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  //типа песок 
-  image = SOIL_load_image("./textures/sand.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &textureSand);
-  glBindTexture(GL_TEXTURE_2D, textureSand);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  //Типа камни
-  image = SOIL_load_image("./textures/rock.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-  glGenTextures(1, &textureRock);
-  glBindTexture(GL_TEXTURE_2D, textureRock);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-  glGenerateMipmap(GL_TEXTURE_2D);
-  SOIL_free_image_data(image);
-  glBindTexture(GL_TEXTURE_2D, 0);
+  GLuint textureGrass = loadTexture("./textures/grass.jpg");
+  GLuint textureWater = loadTexture("./textures/water.jpg");
+  GLuint textureSnow  = loadTexture("./textures/snow.jpg");
+  GLuint textureSand  = loadTexture("./textures/sand.jpg");
+  GLuint textureRock  = loadTexture("./textures/rock.jpg");
 
   //типа небо
-  initskybox();
+  GLfloat vertices[] = {
+         0.5f,  0.5f, 0.0f,  // Top Right
+         0.5f, -0.5f, 0.0f,  // Bottom Right
+        -0.5f, -0.5f, 0.0f,  // Bottom Left
+        -0.5f,  0.5f, 0.0f   // Top Left 
+    };
+    GLuint indices[] = {  // Note that we start from 0!
+        0, 1, 3,  // First Triangle
+        1, 2, 3   // Second Triangle
+    };
+    GLuint VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+    glBindVertexArray(VAO);
 
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+
+    glBindVertexArray(0); 
+    
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
-  
+
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//цикл обработки сообщений и отрисовки сцены каждый кадр
-	while (!glfwWindowShouldClose(window))
-	{
-		//считаем сколько времени прошло за кадр
-		GLfloat currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+  //цикл обработки сообщений и отрисовки сцены каждый кадр
+  while (!glfwWindowShouldClose(window))
+  {
+    //считаем сколько времени прошло за кадр
+    GLfloat currentFrame = glfwGetTime();
+    deltaTime = currentFrame - lastFrame;
+    lastFrame = currentFrame;
 
-		glfwPollEvents();
+    glfwPollEvents();
     doCameraMovement(camera, deltaTime);
 
-		//очищаем экран каждый кадр
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f); GL_CHECK_ERRORS;
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
+    //очищаем экран каждый кадр
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); GL_CHECK_ERRORS;
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); GL_CHECK_ERRORS;
 
     program.StartUseShader(); GL_CHECK_ERRORS;
 
-		//обновляем матрицы камеры и проекции каждый кадр
+    //обновляем матрицы камеры и проекции каждый кадр
     float4x4 view       = camera.GetViewMatrix();
     float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
     // cout << camera.pos.x << " " << camera.pos.y << " "<< camera.pos.z << endl;
-		                //модельная матрица, определяющая положение объекта в мировом пространстве
-		float4x4 model; //начинаем с единичной матрицы
-
-    program.StartUseShader();
+                    //модельная матрица, определяющая положение объекта в мировом пространстве
+    float4x4 model; //начинаем с единичной матрицы
 
     //загружаем uniform-переменные в шейдерную программу (одинаковые для всех параллельно запускаемых копий шейдера)
     program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     program.SetUniform("model",      model);
+    program.SetUniform("state",      KEYBOARD);
 
     //рисуем плоскость
     glActiveTexture(GL_TEXTURE0);
@@ -742,14 +771,12 @@ int main(int argc, char** argv)
 
     program.StopUseShader();
 
-//drawSkybox(TERRAIN_SIZE * 2);
+    glfwSwapBuffers(window); 
+  }
 
-		glfwSwapBuffers(window); 
-	}
-
-	//очищаем vao перед закрытием программы
-	glDeleteVertexArrays(1, &vaoTriStrip);
-
-	glfwTerminate();
-	return 0;
+  //очищаем vao перед закрытием программы
+  glDeleteVertexArrays(1, &vaoTriStrip);
+  glDeleteVertexArrays(1, &vaoTriStrip1);
+  glfwTerminate();
+  return 0;
 }
