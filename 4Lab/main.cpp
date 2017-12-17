@@ -12,7 +12,7 @@
 #include <string>
 #include "SOIL/SOIL.h"
 using namespace std;
-static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 257; //размеры окна
+static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 513; //размеры окна
 
 static int filling = 0;
 static bool keys[1024]; //массив состояний кнопок - нажата/не нажата
@@ -134,56 +134,7 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
   if (keys[GLFW_KEY_D])
     camera.ProcessKeyboard(RIGHT, deltaTime);
 }
-// Алгоритм для генерации деревьев
-/*
-void expand(float num){
-  string ch = "";
 
-  for (int i = 0; i < str.length(); i++){
-    ch = str.at(i);
-
-    if (ch.compare("D") == 0){
-      str.replace(i, 1, "DD");
-      i = i + 1;
-    } else if (ch.compare("X") == 0){
-      
-      if (num < 0.4){
-        //LSystem.replace(i, 1, "D[LX]D[RX]LX");
-      str.replace(i, 1, "D[LXV]D[RXV]LX");
-
-      } else {
-        //LSystem.replace(i, 1, "D[RX]D[LX]RX");
-        str.replace(i, 1, "D[RXV]D[LXV]RX");
-      }
-      i = i + 13; //11
-    } 
-
-  } 
-  trees->push_back(str);
-}
-
-void draw(){
-  string ch = "";
-  string LSystem = trees->at(depth);
-  for (int i = 0; i < LSystem.length(); i++){
-    ch = LSystem.at(i);
-
-    if (ch.compare("D") == 0 || ch.compare("X") == 0){
-      drawLine();
-    } else if (ch.compare("[") == 0){
-      push();
-    } else if (ch.compare("]") == 0){
-      pop();
-    } else if (ch.compare("V") == 0){
-      leaf();
-    } else if (ch.compare("R") == 0){
-      rotR();
-    } else if (ch.compare("L") == 0){
-      rotL();
-    }
-  }
-}
-*/
 // Алгоритм для генерации ландшафта
 float randTerrain(int size) {
   return (float)(rand() % size - size / 2) * ROUGHNESS;
@@ -436,6 +387,80 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   return numIndices;
 }
 
+static int createSkyBox(int size, GLuint &vao) 
+{
+/*
+    GLfloat vertices_vec[] = {
+         size,  size, size,   // Top Right
+         size, -size, size,   // Bottom Right
+        -size, -size, size,   // Bottom Left
+        -size,  size, size/*,   // Top Left
+         size,  size, -size,  // Top Right
+         size, -size, -size,  // Bottom Right
+        -size, -size, -size,  // Bottom Left
+        -size,  size, -size   // Top Left 
+    };
+    GLuint indices_vec[] = {  // Note that we start from 0!
+        0, 3, 1,
+        1, 3, 2/*,
+        3, 7, 2,
+        2, 7, 6,
+        7, 0, 3,
+        7, 4, 0,
+        2, 5, 6,
+        2, 1, 5,
+        0, 4, 5,
+        0, 5, 1,
+        4, 7, 6,
+        4, 6, 5
+    };
+
+    GLfloat texcoords_vec[] = {
+      // front
+      0.0, 0.0,
+      0.0, 1.0,
+      1.0, 0.0,
+      1.0, 1.0,
+    };
+
+  GLuint vboVertices, vboIndices, vboNormals, vboTexCoords;
+
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vboVertices);
+  glGenBuffers(1, &vboIndices);
+  glGenBuffers(1, &vboTexCoords);
+
+  glBindVertexArray(vao); GL_CHECK_ERRORS;
+  {
+
+    //передаем в шейдерную программу атрибут координат вершин
+    glBindBuffer(GL_ARRAY_BUFFER, vboVertices); GL_CHECK_ERRORS;
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_vec), &vertices_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0); GL_CHECK_ERRORS;
+    glEnableVertexAttribArray(0); GL_CHECK_ERRORS;
+
+    //передаем в шейдерную программу атрибут текстурных координат
+    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords); GL_CHECK_ERRORS;
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords_vec), &texcoords_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (GLvoid*)0); GL_CHECK_ERRORS;
+    glEnableVertexAttribArray(2); GL_CHECK_ERRORS;
+
+    //передаем в шейдерную программу индексы
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices); GL_CHECK_ERRORS;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_vec), &indices_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
+
+    //glEnable(GL_PRIMITIVE_RESTART); GL_CHECK_ERRORS;
+    //glPrimitiveRestartIndex(primRestart); GL_CHECK_ERRORS;
+  }
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glBindVertexArray(0);
+
+
+  return sizeof(indices_vec)/sizeof(indices_vec[0]);
+*/
+}
+
 int initGL()
 {
   int res = 0;
@@ -461,164 +486,26 @@ int initGL()
   return 0;
 }
 
-
-/*
-void initskybox()
+unsigned char *loadImage(const char* filename, int &width, int &height)
 {
-        skybox[SKY_LEFT]   = loadTexture("./textures/sky_left.bmp");
-        skybox[SKY_BACK]   = loadTexture("./textures/sky_back.bmp");
-        skybox[SKY_RIGHT]  = loadTexture("./textures/sky_right.bmp");
-        skybox[SKY_FRONT]  = loadTexture("./textures/sky_front.bmp");
-        skybox[SKY_TOP]    = loadTexture("./textures/sky_top.bmp");
-        skybox[SKY_BOTTOM] = loadTexture("./textures/sky_bottom.bmp");
+  unsigned char* image;
+  image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
+  return image;
 }
-
-void killskybox()
-{
-        glDeleteTextures(6,&skybox[0]);
-}
-
-void drawSkybox(float size)
-{
-        bool b1=glIsEnabled(GL_TEXTURE_2D);     //new, we left the textures turned on, if it was turned on
-        glDisable(GL_LIGHTING); //turn off lighting, when making the skybox
-        glDisable(GL_DEPTH_TEST);       //turn off depth texting
-        glEnable(GL_TEXTURE_2D);        //and turn on texturing
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_BACK]);  //use the texture we want
-        glBegin(GL_QUADS);      //and draw a face
-                //back face
-                glTexCoord2f(0,0);      //use the correct texture coordinate
-                glVertex3f(size/2,size/2,size/2);       //and a vertex
-                glTexCoord2f(1,0);      //and repeat it...
-                glVertex3f(-size/2,size/2,size/2);
-                glTexCoord2f(1,1);
-                glVertex3f(-size/2,-size/2,size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(size/2,-size/2,size/2);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_LEFT]);
-        glBegin(GL_QUADS);     
-                //left face
-                glTexCoord2f(0,0);
-                glVertex3f(-size/2,size/2,size/2);
-                glTexCoord2f(1,0);
-                glVertex3f(-size/2,size/2,-size/2);
-                glTexCoord2f(1,1);
-                glVertex3f(-size/2,-size/2,-size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(-size/2,-size/2,size/2);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_FRONT]);
-        glBegin(GL_QUADS);     
-                //front face
-                glTexCoord2f(1,0);
-                glVertex3f(size/2,size/2,-size/2);
-                glTexCoord2f(0,0);
-                glVertex3f(-size/2,size/2,-size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(-size/2,-size/2,-size/2);
-                glTexCoord2f(1,1);
-                glVertex3f(size/2,-size/2,-size/2);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_RIGHT]);
-        glBegin(GL_QUADS);     
-                //right face
-                glTexCoord2f(0,0);
-                glVertex3f(size/2,size/2,-size/2);
-                glTexCoord2f(1,0);
-                glVertex3f(size/2,size/2,size/2);
-                glTexCoord2f(1,1);
-                glVertex3f(size/2,-size/2,size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(size/2,-size/2,-size/2);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_TOP]);          
-        glBegin(GL_QUADS);                      //top face
-                glTexCoord2f(1,0);
-                glVertex3f(size/2,size/2,size/2);
-                glTexCoord2f(0,0);
-                glVertex3f(-size/2,size/2,size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(-size/2,size/2,-size/2);
-                glTexCoord2f(1,1);
-                glVertex3f(size/2,size/2,-size/2);
-        glEnd();
-        glBindTexture(GL_TEXTURE_2D,skybox[SKY_BOTTOM]);               
-        glBegin(GL_QUADS);     
-                //bottom face
-                glTexCoord2f(1,1);
-                glVertex3f(size/2,-size/2,size/2);
-                glTexCoord2f(0,1);
-                glVertex3f(-size/2,-size/2,size/2);
-                glTexCoord2f(0,0);
-                glVertex3f(-size/2,-size/2,-size/2);
-                glTexCoord2f(1,0);
-                glVertex3f(size/2,-size/2,-size/2);
-        glEnd();
-        glEnable(GL_LIGHTING);  //turn everything back, which we turned on, and turn everything off, which we have turned on.
-        glEnable(GL_DEPTH_TEST);
-        if(!b1)
-                glDisable(GL_TEXTURE_2D);
-}
-*/
-
 
 GLuint loadTexture(const char* filename)  //load the filename named texture
 {
   int width, height;
   GLuint texture;
-  unsigned char* image;
-  image = SOIL_load_image(filename, &width, &height, 0, SOIL_LOAD_RGB);
+  unsigned char* image = loadImage(filename, width, height);
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
   glGenerateMipmap(GL_TEXTURE_2D);
   SOIL_free_image_data(image);
   glBindTexture(GL_TEXTURE_2D, 0);
   return texture;
-}
-
-void skyBox() 
-{
-  static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
-};
-
 }
 
 int main(int argc, char** argv)
@@ -660,6 +547,11 @@ int main(int argc, char** argv)
   while (gl_error != GL_NO_ERROR)
     gl_error = glGetError();
 
+  //типа текстуры
+  GLuint textureGrass    = loadTexture("./textures/grass.jpg");
+  GLuint textureWater    = loadTexture("./textures/water.jpg");
+  GLuint textureSky      = loadTexture("./textures/test.jpg");
+
   //создание шейдерной программы из двух файлов с исходниками шейдеров
   //используется класс-обертка ShaderProgram
   std::unordered_map<GLenum, std::string> shaders;
@@ -667,29 +559,38 @@ int main(int argc, char** argv)
   shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
   ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
-  //типа текстуры
-  GLuint textureGrass = loadTexture("./textures/grass.jpg");
-  GLuint textureWater = loadTexture("./textures/water.jpg");
-  GLuint textureSnow  = loadTexture("./textures/snow.jpg");
-  GLuint textureSand  = loadTexture("./textures/sand.jpg");
-  GLuint textureRock  = loadTexture("./textures/rock.jpg");
-
   //типа небо
-  GLfloat vertices[] = {
-         0.5f,  0.5f, 0.0f,  // Top Right
-         0.5f, -0.5f, 0.0f,  // Bottom Right
-        -0.5f, -0.5f, 0.0f,  // Bottom Left
-        -0.5f,  0.5f, 0.0f   // Top Left 
+  // Set up vertex data (and buffer(s)) and attribute pointers
+    GLfloat vertices[] = {
+        // Positions          // Colors           // Texture Coords
+         0.5f,  0.5f, 0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+         0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
+        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+        -0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top Left 
+         0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+         0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
+        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
     };
     GLuint indices[] = {  // Note that we start from 0!
-        0, 1, 3,  // First Triangle
-        1, 2, 3   // Second Triangle
+      0, 1, 3, // First Triangle
+      1, 2, 3,  // Second Triangle
+      3, 7, 2,
+        2, 7, 6,
+        7, 0, 3,
+        7, 4, 0,
+        2, 5, 6,
+        2, 1, 5,
+        0, 4, 5,
+        0, 5, 1,
+        4, 7, 6,
+        4, 6, 5
     };
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
-    // Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
+
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -698,21 +599,35 @@ int main(int argc, char** argv)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+    // Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    // TexCoord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
+    glBindVertexArray(0); // Unbind VAO
 
-    glBindVertexArray(0); 
+  std::unordered_map<GLenum, std::string> skybox_shaders;
+  skybox_shaders[GL_VERTEX_SHADER]   = "skybox_vertex.glsl";
+  skybox_shaders[GL_FRAGMENT_SHADER] = "skybox_fragment.glsl";
+  ShaderProgram skybox_program(skybox_shaders); GL_CHECK_ERRORS;
+
     
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
-
+/*
+  GLuint vaoSkyBox;
+  int skyBoxIndices  = createSkyBox(TERRAIN_SIZE, vaoSkyBox);
+*/
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+  
   //цикл обработки сообщений и отрисовки сцены каждый кадр
   while (!glfwWindowShouldClose(window))
   {
@@ -733,7 +648,6 @@ int main(int argc, char** argv)
     //обновляем матрицы камеры и проекции каждый кадр
     float4x4 view       = camera.GetViewMatrix();
     float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
-    // cout << camera.pos.x << " " << camera.pos.y << " "<< camera.pos.z << endl;
                     //модельная матрица, определяющая положение объекта в мировом пространстве
     float4x4 model; //начинаем с единичной матрицы
 
@@ -746,23 +660,11 @@ int main(int argc, char** argv)
     //рисуем плоскость
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureWater);
-    program.SetUniform("ourTexture1", 0);
+    program.SetUniform("textureWater", 0);
 
     glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textureSand);
-    program.SetUniform("ourTexture2", 1);
-
-    glActiveTexture(GL_TEXTURE2);
     glBindTexture(GL_TEXTURE_2D, textureGrass);
-    program.SetUniform("ourTexture3", 2);
-
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, textureRock);
-    program.SetUniform("ourTexture4", 3);
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, textureSnow);
-    program.SetUniform("ourTexture5", 4);
+    program.SetUniform("textureGrass", 1);
 
 
     glBindVertexArray(vaoTriStrip);
@@ -771,12 +673,29 @@ int main(int argc, char** argv)
 
     program.StopUseShader();
 
+    skybox_program.StartUseShader();
+
+    skybox_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
+    skybox_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
+    skybox_program.SetUniform("model",      model);
+    skybox_program.SetUniform("campos",     camera.pos);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureSky);
+    skybox_program.SetUniform("textureSky", 0);
+
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, 6/*skyBoxIndices*/, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    skybox_program.StopUseShader();
+
+
     glfwSwapBuffers(window); 
   }
 
-  //очищаем vao перед закрытием программы
+  //очищаем vao перед закрытием программ
   glDeleteVertexArrays(1, &vaoTriStrip);
-  glDeleteVertexArrays(1, &vaoTriStrip1);
   glfwTerminate();
   return 0;
 }
