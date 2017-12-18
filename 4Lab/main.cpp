@@ -508,6 +508,42 @@ GLuint loadTexture(const char* filename)  //load the filename named texture
   return texture;
 }
 
+GLuint loadSkyTexture()  //load the filename named texture
+{
+  int width, height;
+  GLuint texture;
+  unsigned char* image1 = loadImage("./sky/sky.jpg", width, height);
+  unsigned char* image2 = loadImage("./sky/test.jpg", width, height);
+  unsigned char* image3 = loadImage("./sky/test.jpg", width, height);
+  unsigned char* image4 = loadImage("./sky/test.jpg", width, height);
+  unsigned char* image5 = loadImage("./sky/test.jpg", width, height);
+  unsigned char* image6 = loadImage("./sky/test.jpg", width, height);
+
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image1);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image3);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image4);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image5);
+  glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image6);
+
+  SOIL_free_image_data(image1);
+  SOIL_free_image_data(image2);
+  SOIL_free_image_data(image3);
+  SOIL_free_image_data(image4);
+  SOIL_free_image_data(image5);
+  SOIL_free_image_data(image6);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+  return texture;
+}
+
 int main(int argc, char** argv)
 {
 
@@ -550,7 +586,7 @@ int main(int argc, char** argv)
   //типа текстуры
   GLuint textureGrass    = loadTexture("./textures/grass.jpg");
   GLuint textureWater    = loadTexture("./textures/water.jpg");
-  GLuint textureSky      = loadTexture("./textures/test.jpg");
+  GLuint textureSky      = loadSkyTexture();
 
   //создание шейдерной программы из двух файлов с исходниками шейдеров
   //используется класс-обертка ShaderProgram
@@ -562,29 +598,29 @@ int main(int argc, char** argv)
   //типа небо
   // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[] = {
-        // Positions                                  // Colors           // Texture Coords
-         TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-         TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-        -TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-        -TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top Left 
-         TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-         TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-        -TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-        -TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+        // Positions                                 // Texture Coords
+         TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 1.0f, 0, // Top Right
+         TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 0.0f, 0, // Bottom Right
+        -TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 0.0f, 0, // Bottom Left
+        -TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 1.0f, 0,  // Top Left 
+         TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,  1.0f, 1.0f, 1, // Top Right
+         TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,  1.0f, 0.0f, 1, // Bottom Right
+        -TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,  0.0f, 0.0f, 1, // Bottom Left
+        -TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,  0.0f, 1.0f, 1  // Top Left 
     };
     GLuint indices[] = {  // Note that we start from 0!
       0, 1, 3, // First Triangle
       1, 2, 3,  // Second Triangle
       3, 7, 2,
-        2, 7, 6,
-        7, 0, 3,
-        7, 4, 0,
-        2, 5, 6,
-        2, 1, 5,
-        0, 4, 5,
-        0, 5, 1,
-        4, 7, 6,
-        4, 6, 5
+      2, 7, 6,
+      7, 0, 3,
+      7, 4, 0,
+      2, 5, 6,
+      2, 1, 5,
+      0, 4, 5,
+      0, 5, 1,
+      4, 7, 6,
+      4, 6, 5
     };
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -600,14 +636,14 @@ int main(int argc, char** argv)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
     // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    //glEnableVertexAttribArray(1);
     // TexCoord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0); // Unbind VAO
 
@@ -681,7 +717,7 @@ int main(int argc, char** argv)
     skybox_program.SetUniform("campos",     camera.pos);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureSky);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureSky);
     skybox_program.SetUniform("textureSky", 0);
 
     glBindVertexArray(VAO);
