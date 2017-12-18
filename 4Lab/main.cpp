@@ -562,15 +562,15 @@ int main(int argc, char** argv)
   //типа небо
   // Set up vertex data (and buffer(s)) and attribute pointers
     GLfloat vertices[] = {
-        // Positions          // Colors           // Texture Coords
-         0.5f,  0.5f, 0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-         0.5f, -0.5f, 0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-        -0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top Left 
-         0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
-         0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
-        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
-        -0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
+        // Positions                                  // Colors           // Texture Coords
+         TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+         TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
+        -TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+        -TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,  // Top Left 
+         TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f, // Top Right
+         TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // Bottom Right
+        -TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // Bottom Left
+        -TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f  // Top Left 
     };
     GLuint indices[] = {  // Note that we start from 0!
       0, 1, 3, // First Triangle
@@ -685,7 +685,7 @@ int main(int argc, char** argv)
     skybox_program.SetUniform("textureSky", 0);
 
     glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6/*skyBoxIndices*/, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, 36/*skyBoxIndices*/, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     skybox_program.StopUseShader();
