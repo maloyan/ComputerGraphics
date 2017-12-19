@@ -387,78 +387,54 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   return numIndices;
 }
 
-static int createSkyBox(int size, GLuint &vao) 
+static int createSkyBox(int size, GLuint &VAO) 
 {
-/*
-    GLfloat vertices_vec[] = {
-         size,  size, size,   // Top Right
-         size, -size, size,   // Bottom Right
-        -size, -size, size,   // Bottom Left
-        -size,  size, size/*,   // Top Left
-         size,  size, -size,  // Top Right
-         size, -size, -size,  // Bottom Right
-        -size, -size, -size,  // Bottom Left
-        -size,  size, -size   // Top Left 
+//типа небо
+    GLfloat vertices[] = {
+        // Positions                                 
+         TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   
+         TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE, 
+        -TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE, 
+        -TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE, 
+         TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,
+         TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,
+        -TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,
+        -TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,
     };
-    GLuint indices_vec[] = {  // Note that we start from 0!
-        0, 3, 1,
-        1, 3, 2/*,
-        3, 7, 2,
-        2, 7, 6,
-        7, 0, 3,
-        7, 4, 0,
-        2, 5, 6,
-        2, 1, 5,
-        0, 4, 5,
-        0, 5, 1,
-        4, 7, 6,
-        4, 6, 5
+    GLuint indices[] = {  // Note that we start from 0!
+      0, 1, 3, // First Triangle
+      1, 2, 3,  // Second Triangle
+      3, 7, 2,
+      2, 7, 6,
+      7, 0, 3,
+      7, 4, 0,
+      2, 5, 6,
+      2, 1, 5,
+      0, 4, 5,
+      0, 5, 1,
+      4, 7, 6,
+      4, 6, 5
     };
+    GLuint VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
-    GLfloat texcoords_vec[] = {
-      // front
-      0.0, 0.0,
-      0.0, 1.0,
-      1.0, 0.0,
-      1.0, 1.0,
-    };
+    glBindVertexArray(VAO);
 
-  GLuint vboVertices, vboIndices, vboNormals, vboTexCoords;
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vboVertices);
-  glGenBuffers(1, &vboIndices);
-  glGenBuffers(1, &vboTexCoords);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-  glBindVertexArray(vao); GL_CHECK_ERRORS;
-  {
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+    glEnableVertexAttribArray(0);
 
-    //передаем в шейдерную программу атрибут координат вершин
-    glBindBuffer(GL_ARRAY_BUFFER, vboVertices); GL_CHECK_ERRORS;
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_vec), &vertices_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0); GL_CHECK_ERRORS;
-    glEnableVertexAttribArray(0); GL_CHECK_ERRORS;
+    glBindVertexArray(0); // Unbind VAO
 
-    //передаем в шейдерную программу атрибут текстурных координат
-    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoords); GL_CHECK_ERRORS;
-    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoords_vec), &texcoords_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GL_FLOAT), (GLvoid*)0); GL_CHECK_ERRORS;
-    glEnableVertexAttribArray(2); GL_CHECK_ERRORS;
-
-    //передаем в шейдерную программу индексы
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndices); GL_CHECK_ERRORS;
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices_vec), &indices_vec[0], GL_STATIC_DRAW); GL_CHECK_ERRORS;
-
-    //glEnable(GL_PRIMITIVE_RESTART); GL_CHECK_ERRORS;
-    //glPrimitiveRestartIndex(primRestart); GL_CHECK_ERRORS;
-  }
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  glBindVertexArray(0);
-
-
-  return sizeof(indices_vec)/sizeof(indices_vec[0]);
-*/
+    return 36;
 }
 
 int initGL()
@@ -513,11 +489,11 @@ GLuint loadSkyTexture()  //load the filename named texture
   int width, height;
   GLuint texture;
   unsigned char* image1 = loadImage("./sky/sky.jpg", width, height);
-  unsigned char* image2 = loadImage("./sky/test.jpg", width, height);
-  unsigned char* image3 = loadImage("./sky/test.jpg", width, height);
-  unsigned char* image4 = loadImage("./sky/test.jpg", width, height);
-  unsigned char* image5 = loadImage("./sky/test.jpg", width, height);
-  unsigned char* image6 = loadImage("./sky/test.jpg", width, height);
+  unsigned char* image2 = loadImage("./sky/sky.jpg", width, height);
+  unsigned char* image3 = loadImage("./sky/sky.jpg", width, height);
+  unsigned char* image4 = loadImage("./sky/sky.jpg", width, height);
+  unsigned char* image5 = loadImage("./sky/sky.jpg", width, height);
+  unsigned char* image6 = loadImage("./sky/sky.jpg", width, height);
 
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
@@ -595,58 +571,6 @@ int main(int argc, char** argv)
   shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
   ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
-  //типа небо
-  // Set up vertex data (and buffer(s)) and attribute pointers
-    GLfloat vertices[] = {
-        // Positions                                 // Texture Coords
-         TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 1.0f, 0, // Top Right
-         TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   1.0f, 0.0f, 0, // Bottom Right
-        -TERRAIN_SIZE, -TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 0.0f, 0, // Bottom Left
-        -TERRAIN_SIZE,  TERRAIN_SIZE, TERRAIN_SIZE,   0.0f, 1.0f, 0,  // Top Left 
-         TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,  1.0f, 1.0f, 1, // Top Right
-         TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,  1.0f, 0.0f, 1, // Bottom Right
-        -TERRAIN_SIZE, -TERRAIN_SIZE, -TERRAIN_SIZE,  0.0f, 0.0f, 1, // Bottom Left
-        -TERRAIN_SIZE,  TERRAIN_SIZE, -TERRAIN_SIZE,  0.0f, 1.0f, 1  // Top Left 
-    };
-    GLuint indices[] = {  // Note that we start from 0!
-      0, 1, 3, // First Triangle
-      1, 2, 3,  // Second Triangle
-      3, 7, 2,
-      2, 7, 6,
-      7, 0, 3,
-      7, 4, 0,
-      2, 5, 6,
-      2, 1, 5,
-      0, 4, 5,
-      0, 5, 1,
-      4, 7, 6,
-      4, 6, 5
-    };
-    GLuint VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(0);
-    // Color attribute
-    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    //glEnableVertexAttribArray(1);
-    // TexCoord attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    glBindVertexArray(0); // Unbind VAO
-
   std::unordered_map<GLenum, std::string> skybox_shaders;
   skybox_shaders[GL_VERTEX_SHADER]   = "skybox_vertex.glsl";
   skybox_shaders[GL_FRAGMENT_SHADER] = "skybox_fragment.glsl";
@@ -656,10 +580,10 @@ int main(int argc, char** argv)
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
-/*
+
   GLuint vaoSkyBox;
   int skyBoxIndices  = createSkyBox(TERRAIN_SIZE, vaoSkyBox);
-*/
+
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -720,8 +644,8 @@ int main(int argc, char** argv)
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureSky);
     skybox_program.SetUniform("textureSky", 0);
 
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 36/*skyBoxIndices*/, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(vaoSkyBox);
+    glDrawElements(GL_TRIANGLES, skyBoxIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
     skybox_program.StopUseShader();
@@ -732,6 +656,7 @@ int main(int argc, char** argv)
 
   //очищаем vao перед закрытием программ
   glDeleteVertexArrays(1, &vaoTriStrip);
+  glDeleteVertexArrays(1, &vaoSkyBox);
   glfwTerminate();
   return 0;
 }
