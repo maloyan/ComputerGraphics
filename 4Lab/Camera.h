@@ -35,7 +35,7 @@ public:
 
   Camera(float3 a_pos = float3(0.0f, 0.0f, 0.0f), float3 a_up = float3(0.0f, 1.0f, 0.0f),
          float3 a_front = float3(0.0f, 0.0f, -1.0f), GLfloat a_yaw = -90.0f, GLfloat a_pitch = 0.0f,
-         GLfloat a_moveSpeed = 10.0f, GLfloat a_mouseSensitivity = 0.1f, GLfloat a_zoom = 45.0f);
+         GLfloat a_moveSpeed = 100.0f, GLfloat a_mouseSensitivity = 0.1f, GLfloat a_zoom = 45.0f);
 
   virtual ~Camera() {};
 

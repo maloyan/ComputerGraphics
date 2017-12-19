@@ -11,6 +11,7 @@
 #include <iostream>
 #include <string>
 #include "SOIL/SOIL.h"
+
 using namespace std;
 static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 513; //размеры окна
 
@@ -125,6 +126,15 @@ void OnMouseScroll(GLFWwindow* window, double xoffset, double yoffset)
 
 void doCameraMovement(Camera &camera, GLfloat deltaTime)
 {
+  if (camera.pos.x > TERRAIN_SIZE - 1)
+    camera.pos.x = camera.pos.x - TERRAIN_SIZE + 1; 
+  if (camera.pos.z > TERRAIN_SIZE - 1)
+    camera.pos.z = camera.pos.z - TERRAIN_SIZE + 1;
+  if (camera.pos.x < 0)
+    camera.pos.x = TERRAIN_SIZE - 1 + camera.pos.x;
+  if (camera.pos.z < 0)
+    camera.pos.z = TERRAIN_SIZE - 1 + camera.pos.z;
+
   if (keys[GLFW_KEY_W])
     camera.ProcessKeyboard(FORWARD, deltaTime);
   if (keys[GLFW_KEY_A])
@@ -650,8 +660,9 @@ int main(int argc, char** argv)
     glBindTexture(GL_TEXTURE_2D, textureGrass);
     program.SetUniform("textureGrass", 1);
 
-
+    
     glBindVertexArray(vaoTriStrip);
+    glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
     glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
     glBindVertexArray(0); GL_CHECK_ERRORS;
 
