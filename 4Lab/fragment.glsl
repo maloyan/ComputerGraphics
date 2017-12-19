@@ -15,7 +15,7 @@ void main()
     // Blue for see level (at and below ground)
     const vec3 seeColor = vec3(0.0, 0.0, 0.5);
     // Yellow at the ground level.
-    const float ground = 0.01f;
+    const float ground = 0;
     const vec3 groundColor = vec3(0.4f, 0.6f, 0.0f);
     // Green at vegetation start.
     const float vegstart = 2;
@@ -31,6 +31,13 @@ void main()
     vec3 mapped;
     vec3 lightDir = vec3(1.0f, 1.0f, 0.0f); 
     vec4 col;
+
+    float density = 5;
+    float perspective_far = 2500;
+    float fogCoord = (gl_FragCoord.z / gl_FragCoord.w) / perspective_far;
+    float fog = fogCoord * density;
+
+
       if(vFragPosition.y > veglim) {
           maxHeight = top;
           minHeight = veglim;
@@ -62,6 +69,8 @@ void main()
     mapped = (vFragPosition.y-minHeight) / (maxHeight-minHeight) * (maxColor-minColor) + minColor;
     float kd = max(dot(vNormal, lightDir), 0.0);
     color = vec4(kd * mapped, 1.0f) + col;
+    vec4 fogColor = vec4(0.5, 0.5, 0.5, 1);
+    color = mix(fogColor, color, clamp(1.0 - fog, 0.0f, 1.0f));
   } else {
     color = vec4(vNormal, 1.0f);
   }

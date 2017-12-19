@@ -141,11 +141,16 @@ float randTerrain(int size) {
 }
 
 float checkYY(int i, int j) {
-  if(i < 0 || j < 0 || i > TERRAIN_SIZE - 1 || j > TERRAIN_SIZE - 1) {
-    return 0;
-  } else {
-    return yy[i][j];
-  }
+  if (i < 0)
+    i = TERRAIN_SIZE - 1 + i;
+  if (j < 0)
+    j = TERRAIN_SIZE - 1 + j;
+
+  if (i > TERRAIN_SIZE - 1)
+    i = i - TERRAIN_SIZE + 1;
+  if (j > TERRAIN_SIZE - 1)
+    j = j - TERRAIN_SIZE + 1;
+  return yy[i][j];
 }
 
 void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
@@ -203,8 +208,9 @@ void terrainGeneration() {
 \param cols - число столбцов
 \param size - размер плоскости
 \param vao - vertex array object, связанный с созданной плоскостью
+\param type - 1(terrain), 2(water)
 */
-static int createTriStrip(int rows, int cols, float size, GLuint &vao)
+static int createTriStrip(int rows, int cols, float size, GLuint &vao, int type)
 {
 
   int numIndices = 2 * cols*(rows - 1) + rows - 1;
@@ -226,14 +232,18 @@ static int createTriStrip(int rows, int cols, float size, GLuint &vao)
   std::vector<GLuint> indices_vec; //вектор индексов вершин для передачи шейдерной программе
   indices_vec.reserve(numIndices);
 
-  terrainGeneration();
+  if (type == 1)
+    terrainGeneration();
 
   for (int z = 0; z < rows; ++z)
   {
     for (int x = 0; x < cols; ++x)
     {
       vertices_vec.push_back(x);
-      vertices_vec.push_back(yy[z][x]);
+      if (type == 1)
+        vertices_vec.push_back(yy[z][x]);
+      else 
+        vertices_vec.push_back(0);
       vertices_vec.push_back(z);
 
       texcoords_vec.push_back(x / float(cols - 1)); // вычисляем первую текстурную координату u, для плоскости это просто относительное положение вершины
@@ -527,6 +537,7 @@ int main(int argc, char** argv)
   if(!glfwInit())
     return -1;
 
+  
   //запрашиваем контекст opengl версии 3.3
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3); 
@@ -553,11 +564,17 @@ int main(int argc, char** argv)
 
   if(initGL() != 0) 
     return -1;
-  
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+
   //Reset any OpenGL errors which could be present for some reason
   GLenum gl_error = glGetError();
   while (gl_error != GL_NO_ERROR)
     gl_error = glGetError();
+
 
   //типа текстуры
   GLuint textureGrass    = loadTexture("./textures/grass.jpg");
@@ -576,18 +593,25 @@ int main(int argc, char** argv)
   skybox_shaders[GL_FRAGMENT_SHADER] = "skybox_fragment.glsl";
   ShaderProgram skybox_program(skybox_shaders); GL_CHECK_ERRORS;
 
-    
+  std::unordered_map<GLenum, std::string> water_shaders;
+  water_shaders[GL_VERTEX_SHADER]   = "water_vertex.glsl";
+  water_shaders[GL_FRAGMENT_SHADER] = "water_fragment.glsl";
+  ShaderProgram water_program(water_shaders); GL_CHECK_ERRORS;
+  
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
-  int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip);
+  int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip, 1);
 
   GLuint vaoSkyBox;
   int skyBoxIndices  = createSkyBox(TERRAIN_SIZE, vaoSkyBox);
 
+  GLuint vaoWaterStrip;
+  int waterStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoWaterStrip, 2);
+
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   //цикл обработки сообщений и отрисовки сцены каждый кадр
   while (!glfwWindowShouldClose(window))
   {
@@ -650,6 +674,18 @@ int main(int argc, char** argv)
 
     skybox_program.StopUseShader();
 
+    water_program.StartUseShader();
+    water_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
+    water_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
+    water_program.SetUniform("model",      model);
+
+
+    glBindVertexArray(vaoWaterStrip);
+    glDrawElements(GL_TRIANGLE_STRIP, waterStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+    glBindVertexArray(0); GL_CHECK_ERRORS;
+
+    water_program.StopUseShader();
+
 
     glfwSwapBuffers(window); 
   }
@@ -657,6 +693,7 @@ int main(int argc, char** argv)
   //очищаем vao перед закрытием программ
   glDeleteVertexArrays(1, &vaoTriStrip);
   glDeleteVertexArrays(1, &vaoSkyBox);
+  glDeleteVertexArrays(1, &vaoWaterStrip);
   glfwTerminate();
   return 0;
 }
