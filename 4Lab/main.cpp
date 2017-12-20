@@ -30,7 +30,7 @@ float ANGLE = 20, depth = 0;
 enum {SKY_LEFT=0,SKY_BACK,SKY_RIGHT,SKY_FRONT,SKY_TOP,SKY_BOTTOM};
 unsigned int skybox[6]; //the ids for the textures
 int KEYBOARD = 1;
-#define ROUGHNESS 0.17;
+#define ROUGHNESS 0.5;
 
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
@@ -148,72 +148,83 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
 }
 
 // Алгоритм для генерации ландшафта
-float randTerrain(int size) {
-  return (float)(rand() % size - size / 2) * ROUGHNESS;
-}
+    float randTerrain(int size) {
+      //return 0;
+      return (float)(rand() % size - size / 2) * ROUGHNESS;
+    }
 
-float checkYY(int i, int j) {
-  if (i < 0)
-    i = TERRAIN_SIZE - 1 + i;
-  if (j < 0)
-    j = TERRAIN_SIZE - 1 + j;
+    float checkYY(int i, int j) {
+      if (i < 0)
+        i = TERRAIN_SIZE + i - 1;
+      if (j < 0)
+        j = TERRAIN_SIZE + j - 1;
 
-  if (i > TERRAIN_SIZE - 1)
-    i = i - TERRAIN_SIZE + 1;
-  if (j > TERRAIN_SIZE - 1)
-    j = j - TERRAIN_SIZE + 1;
-  return yy[i][j];
-}
+      if (i > TERRAIN_SIZE - 1)
+        i = i - TERRAIN_SIZE + 1;
+      if (j > TERRAIN_SIZE - 1)
+        j = j - TERRAIN_SIZE + 1;
+      //cout << yy[i][j] << " ";
+      return yy[i][j];
+    }
 
-void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
-    // Центр квадрата
-    for (int start_i = size/2; start_i < TERRAIN_SIZE; start_i += size)
-    for (int start_j = size/2; start_j < TERRAIN_SIZE; start_j += size)
-      yy[start_i][start_j] = (yy[start_i - size / 2][start_j - size / 2]      + 
-                              yy[start_i - size / 2][start_j + size / 2]      + 
-                              yy[start_i + size / 2][start_j - size / 2]      + 
-                              yy[start_i + size / 2][start_j + size / 2]) / 4 +
-                              randTerrain(size);
+    void diamond(int i, int j, int size, int rand) {
+      yy[i][j] = (checkYY(i + size / 2, j)  +
+                  checkYY(i, j + size / 2)  + 
+                  checkYY(i - size / 2, j)  + 
+                  checkYY(i, j - size / 2)) / 4;
+      if (rand) yy[i][j] += randTerrain(size);
+      //cout << endl << yy[i][j] << endl;
+    }
+    void square(int i, int j, int size) {
+      yy[i][j] = (yy[i - size / 2][j - size / 2]  + 
+                  yy[i - size / 2][j + size / 2]  + 
+                  yy[i + size / 2][j - size / 2]  + 
+                  yy[i + size / 2][j + size / 2]) / 4 + randTerrain(size);
+      /*cout << yy[i - size / 2][j - size / 2] << " "  
+           << yy[i - size / 2][j + size / 2] << " " 
+           << yy[i + size / 2][j - size / 2] << " " 
+           << yy[i + size / 2][j + size / 2] << endl << yy[i][j] << endl;*/
+    }
+    void squareDiamond(int size) {
+        // Центр квадрата
+        for (int start_i = size/2; start_i < TERRAIN_SIZE; start_i += size)
+        for (int start_j = size/2; start_j < TERRAIN_SIZE; start_j += size){
+          //cout << start_i << " " << start_j << endl;
+          square(start_i, start_j, size);
+        }
 
-    // Середины сторон
-    for (int start_i = 0; start_i < TERRAIN_SIZE; start_i += size)
-    for (int start_j = 0; start_j < TERRAIN_SIZE; start_j += size) {
-      yy[start_i][start_j + size / 2] = (checkYY(start_i - size / 2, start_j + size / 2) +
-                                         checkYY(start_i + size / 2, start_j + size / 2) +
-                                         checkYY(start_i, start_j)                       +
-                                         checkYY(start_i, start_j + size)) / 4           +
-                                         randTerrain(size);
-      
-      yy[start_i + size / 2][start_j] = (checkYY(start_i + size, start_j)                     +
-                                         checkYY(start_i, start_j)                            +
-                                         checkYY(start_i + size / 2, start_j - size / 2)      +
-                                         checkYY(start_i + size / 2, start_j + size / 2)) / 4 +
-                                         randTerrain(size);
+        // Середины сторон
+        for (int start_i = size / 2; start_i < TERRAIN_SIZE; start_i += size)
+        for (int start_j = 0; start_j < TERRAIN_SIZE; start_j += size) {
+          //cout << start_i << " " << start_j << endl;
+          if (start_i == TERRAIN_SIZE - 1 || start_j == TERRAIN_SIZE - 1 || start_i == 0 || start_j == 0)
+            diamond(start_i, start_j, size, 0);
+          else 
+            diamond(start_i, start_j, size, 1);
+        }
+       
+        for (int start_i = 0; start_i < TERRAIN_SIZE; start_i += size)
+        for (int start_j = size / 2; start_j < TERRAIN_SIZE; start_j += size) {
+          //cout << start_i << " " << start_j << endl;
+          if (start_i == TERRAIN_SIZE - 1 || start_j == TERRAIN_SIZE - 1 || start_i == 0 || start_j == 0)
+            diamond(start_i, start_j, size, 0);
+          else 
+            diamond(start_i, start_j, size, 1);
+        }
+    }
 
-      yy[start_i + size][start_j + size / 2] = (checkYY(start_i + size * 3 / 2, start_j + size / 2) +
-                                                checkYY(start_i + size / 2,     start_j + size / 2) +
-                                                checkYY(start_i + size, start_j)                    +
-                                                checkYY(start_i + size, start_j + size)) / 4        +
-                                                randTerrain(size);
-      yy[start_i + size / 2][start_j + size]= (checkYY(start_i + size, start_j + size)                  +
-                                               checkYY(start_i, start_j + size)                         +
-                                               checkYY(start_i + size / 2, start_j + size / 2)          +
-                                               checkYY(start_i + size / 2, start_j + size * 3 / 2)) / 4 +
-                                               randTerrain(size);
-  }
-}
+    void terrainGeneration() {
+      yy[0][0]                               = 10;//randTerrain(TERRAIN_SIZE / 2);
+      yy[0][TERRAIN_SIZE - 1]                = yy[0][0];
+      yy[TERRAIN_SIZE - 1][0]                = yy[0][0];
+      yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = yy[0][0];
 
-void terrainGeneration() {
-  yy[0][0]                               = randTerrain(TERRAIN_SIZE / 2);
-  yy[0][TERRAIN_SIZE - 1]                = yy[0][0];
-  yy[TERRAIN_SIZE - 1][0]                = yy[0][0];
-  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = yy[0][0];
-  int size = TERRAIN_SIZE - 1;
-  while (size > 1) {
-    squareDiamond(yy, size);
-    size /= 2;
-  }
-}
+      int size = TERRAIN_SIZE - 1;
+      while (size > 1) {
+        squareDiamond(size);
+        size /= 2;
+      }
+    }
 /*
 \brief создать triangle strip плоскость и загрузить её в шейдерную программу
 \param rows - число строк
@@ -545,7 +556,7 @@ GLuint loadSkyTexture()  //load the filename named texture
 int main(int argc, char** argv)
 {
 
-  //srand(time(NULL));
+  srand(time(NULL));
   if(!glfwInit())
     return -1;
 
@@ -598,6 +609,7 @@ int main(int argc, char** argv)
   std::unordered_map<GLenum, std::string> shaders;
   shaders[GL_VERTEX_SHADER]   = "vertex.glsl";
   shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
+  //shaders[GL_GEOMETRY_SHADER] = "geometry.glsl";
   ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
   std::unordered_map<GLenum, std::string> skybox_shaders;
@@ -669,7 +681,7 @@ int main(int argc, char** argv)
     for (int i = -1 ; i <= 1; i++) 
      for (int j = -1; j <= 1; j++){
         // Calculate the model matrix for each object and pass it to shader before drawing
-        model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE /*- 1*/) * i, 0, (TERRAIN_SIZE /*- 1*/) * j));
+        model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE - 1) * i, 0, (TERRAIN_SIZE - 1) * j));
         /*if ((i == 0 || j == 0) && !(i == 0 && j == 0)) {
           GLfloat angle = 180.0f;
           model = glm::rotate(model, angle, glm::vec3(0, 0, 1));
@@ -696,13 +708,13 @@ int main(int argc, char** argv)
     glBindVertexArray(0);
 
     skybox_program.StopUseShader();
+   
 
     water_program.StartUseShader();
     water_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     water_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     GLint uniformLocationWater = glGetUniformLocation(water_program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
-    
-
+ 
     glBindVertexArray(vaoWaterStrip);
     for (int i = -1 ; i <= 1; i++) 
      for (int j = -1; j <= 1; j++){

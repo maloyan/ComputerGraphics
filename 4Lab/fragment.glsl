@@ -2,6 +2,7 @@
 in vec3 vFragPosition;
 in vec2 vTexCoords;
 in vec3 vNormal;
+in vec4 vertex_color;
 
 out vec4 color;
 
