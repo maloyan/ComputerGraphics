@@ -10,6 +10,17 @@ uniform int       state;
 uniform sampler2D textureWater;
 uniform sampler2D textureGrass;
 
+float zNear = 0.1; 
+float zFar  = 100.0; 
+  
+
+float LinearizeDepth(float depth) 
+{
+    // преобразуем обратно в NDC
+    float z = depth * 2.0 - 1.0; 
+    return (2.0 * zNear * zFar) / (zFar + zNear - z * (zFar - zNear));  
+}
+
 void main()
 {
   if (state == 1) {
@@ -72,7 +83,11 @@ void main()
     color = vec4(kd * mapped, 1.0f) + col;
     vec4 fogColor = vec4(0.5, 0.5, 0.5, 1);
     color = mix(fogColor, color, clamp(1.0 - fog, 0.0f, 1.0f));
-  } else {
+  } else if (state == 2) {
     color = vec4(vNormal, 1.0f);
+  } else {
+    // деление на zFar для лучшей наглядности
+    float depth = LinearizeDepth(gl_FragCoord.z) / zFar;
+    color = vec4(vec3(depth), 1.0);
   }
 }

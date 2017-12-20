@@ -69,11 +69,12 @@ void OnKeyboardPressed(GLFWwindow* window, int key, int scancode, int action, in
     break;
   case GLFW_KEY_1:
     KEYBOARD = 1;
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     break;
   case GLFW_KEY_2:
     KEYBOARD = 2;
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    break;
+  case GLFW_KEY_Z:
+    KEYBOARD = 3;
     break;
   default:
     if (action == GLFW_PRESS)
@@ -214,7 +215,7 @@ void doCameraMovement(Camera &camera, GLfloat deltaTime)
     }
 
     void terrainGeneration() {
-      yy[0][0]                               = 10;//randTerrain(TERRAIN_SIZE / 2);
+      yy[0][0]                               = 15;//randTerrain(TERRAIN_SIZE / 2);
       yy[0][TERRAIN_SIZE - 1]                = yy[0][0];
       yy[TERRAIN_SIZE - 1][0]                = yy[0][0];
       yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = yy[0][0];
@@ -556,7 +557,7 @@ GLuint loadSkyTexture()  //load the filename named texture
 int main(int argc, char** argv)
 {
 
-  srand(time(NULL));
+  srand(14);
   if(!glfwInit())
     return -1;
 
@@ -664,8 +665,10 @@ int main(int argc, char** argv)
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     //program.SetUniform("model",      model);
     program.SetUniform("state",      KEYBOARD);
-    string modelstr = "model";
+    string modelstr = "model"; //depthstr = "depthBiasMVP";
     GLint uniformLocation = glGetUniformLocation(program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
+    //GLint uniformLocDepth = glGetUniformLocation(program.shaderProgram, depthstr.c_str()); GL_CHECK_ERRORS;
+    //glUniformMatrix4fv(uniformLocDepth, 1, GL_FALSE, glm::value_ptr(depthBiasMVP)); GL_CHECK_ERRORS;
     
     //рисуем плоскость
     glActiveTexture(GL_TEXTURE0);
@@ -682,10 +685,6 @@ int main(int argc, char** argv)
      for (int j = -1; j <= 1; j++){
         // Calculate the model matrix for each object and pass it to shader before drawing
         model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE - 1) * i, 0, (TERRAIN_SIZE - 1) * j));
-        /*if ((i == 0 || j == 0) && !(i == 0 && j == 0)) {
-          GLfloat angle = 180.0f;
-          model = glm::rotate(model, angle, glm::vec3(0, 0, 1));
-        }*/
         glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(model)); GL_CHECK_ERRORS;
         glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
     }
