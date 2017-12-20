@@ -11,7 +11,9 @@
 #include <iostream>
 #include <string>
 #include "SOIL/SOIL.h"
-
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 using namespace std;
 static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 513; //размеры окна
 
@@ -174,8 +176,8 @@ void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
                               randTerrain(size);
 
     // Середины сторон
-    for (int start_i = 0; start_i < TERRAIN_SIZE - 1; start_i += size)
-    for (int start_j = 0; start_j < TERRAIN_SIZE - 1; start_j += size) {
+    for (int start_i = 0; start_i < TERRAIN_SIZE; start_i += size)
+    for (int start_j = 0; start_j < TERRAIN_SIZE; start_j += size) {
       yy[start_i][start_j + size / 2] = (checkYY(start_i - size / 2, start_j + size / 2) +
                                          checkYY(start_i + size / 2, start_j + size / 2) +
                                          checkYY(start_i, start_j)                       +
@@ -202,10 +204,10 @@ void squareDiamond(float yy[][TERRAIN_SIZE], int size) {
 }
 
 void terrainGeneration() {
-  yy[0][0]                               = randTerrain(TERRAIN_SIZE);
-  yy[0][TERRAIN_SIZE - 1]                = randTerrain(TERRAIN_SIZE);
-  yy[TERRAIN_SIZE - 1][0]                = randTerrain(TERRAIN_SIZE);
-  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = randTerrain(TERRAIN_SIZE);
+  yy[0][0]                               = randTerrain(TERRAIN_SIZE / 2);
+  yy[0][TERRAIN_SIZE - 1]                = yy[0][0];
+  yy[TERRAIN_SIZE - 1][0]                = yy[0][0];
+  yy[TERRAIN_SIZE - 1][TERRAIN_SIZE - 1] = yy[0][0];
   int size = TERRAIN_SIZE - 1;
   while (size > 1) {
     squareDiamond(yy, size);
@@ -543,7 +545,7 @@ GLuint loadSkyTexture()  //load the filename named texture
 int main(int argc, char** argv)
 {
 
-  srand(time(NULL));
+  //srand(time(NULL));
   if(!glfwInit())
     return -1;
 
@@ -643,14 +645,16 @@ int main(int argc, char** argv)
     float4x4 view       = camera.GetViewMatrix();
     float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
                     //модельная матрица, определяющая положение объекта в мировом пространстве
-    float4x4 model; //начинаем с единичной матрицы
-
+    //float4x4 model; //начинаем с единичной матрицы
+    glm::mat4 modelSet, model;
     //загружаем uniform-переменные в шейдерную программу (одинаковые для всех параллельно запускаемых копий шейдера)
     program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     program.SetUniform("projection", projection); GL_CHECK_ERRORS;
-    program.SetUniform("model",      model);
+    //program.SetUniform("model",      model);
     program.SetUniform("state",      KEYBOARD);
-
+    string modelstr = "model";
+    GLint uniformLocation = glGetUniformLocation(program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
+    
     //рисуем плоскость
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureWater);
@@ -660,10 +664,19 @@ int main(int argc, char** argv)
     glBindTexture(GL_TEXTURE_2D, textureGrass);
     program.SetUniform("textureGrass", 1);
 
-    
     glBindVertexArray(vaoTriStrip);
-    glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
-    glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+
+    for (int i = -1 ; i <= 1; i++) 
+     for (int j = -1; j <= 1; j++){
+        // Calculate the model matrix for each object and pass it to shader before drawing
+        model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE /*- 1*/) * i, 0, (TERRAIN_SIZE /*- 1*/) * j));
+        /*if ((i == 0 || j == 0) && !(i == 0 && j == 0)) {
+          GLfloat angle = 180.0f;
+          model = glm::rotate(model, angle, glm::vec3(0, 0, 1));
+        }*/
+        glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(model)); GL_CHECK_ERRORS;
+        glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+    }
     glBindVertexArray(0); GL_CHECK_ERRORS;
 
     program.StopUseShader();
@@ -672,7 +685,6 @@ int main(int argc, char** argv)
 
     skybox_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     skybox_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
-    skybox_program.SetUniform("model",      model);
     skybox_program.SetUniform("campos",     camera.pos);
 
     glActiveTexture(GL_TEXTURE0);
@@ -688,11 +700,18 @@ int main(int argc, char** argv)
     water_program.StartUseShader();
     water_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     water_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
-    water_program.SetUniform("model",      model);
-
+    GLint uniformLocationWater = glGetUniformLocation(water_program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
+    
 
     glBindVertexArray(vaoWaterStrip);
-    glDrawElements(GL_TRIANGLE_STRIP, waterStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+    for (int i = -1 ; i <= 1; i++) 
+     for (int j = -1; j <= 1; j++){
+        // Calculate the model matrix for each object and pass it to shader before drawing
+        model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE - 1) * i, 0, (TERRAIN_SIZE - 1) * j));
+        glUniformMatrix4fv(uniformLocationWater, 1, GL_FALSE, glm::value_ptr(model)); GL_CHECK_ERRORS;
+        glDrawElements(GL_TRIANGLE_STRIP, waterStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+    }
+
     glBindVertexArray(0); GL_CHECK_ERRORS;
 
     water_program.StopUseShader();

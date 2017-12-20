@@ -44,10 +44,10 @@ public:
 
   void SetUniform(const std::string &location, const float2 &value) const;
 
+  GLuint shaderProgram;
 private:
   static GLuint LoadShaderObject(GLenum type, const std::string &filename);
 
-  GLuint shaderProgram;
   std::unordered_map<GLenum, GLuint> shaderObjects;
 };
 

@@ -69,6 +69,12 @@ string
 -
 SOIL/SOIL.h
 /home/narek/ComputerGraphics/4Lab/SOIL/SOIL.h
+glm/glm.hpp
+-
+glm/gtc/matrix_transform.hpp
+-
+glm/gtc/type_ptr.hpp
+-
 
 dependencies/include/GLAD/KHR/khrplatform.h
 stdint.h
