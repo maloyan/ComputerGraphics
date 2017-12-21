@@ -24,6 +24,10 @@ CMakeFiles/main.dir/main.cpp.o: LiteMath.h
 CMakeFiles/main.dir/main.cpp.o: ShaderProgram.h
 CMakeFiles/main.dir/main.cpp.o: common.h
 CMakeFiles/main.dir/main.cpp.o: main.cpp
+CMakeFiles/main.dir/main.cpp.o: objloader.hpp
 CMakeFiles/main.dir/main.cpp.o: dependencies/include/GLAD/KHR/khrplatform.h
 CMakeFiles/main.dir/main.cpp.o: dependencies/include/GLAD/glad/glad.h
+
+CMakeFiles/main.dir/objloader.cpp.o: objloader.cpp
+CMakeFiles/main.dir/objloader.cpp.o: objloader.hpp
 

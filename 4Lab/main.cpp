@@ -14,6 +14,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "objloader.hpp"
 using namespace std;
 static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 513; //размеры окна
 
@@ -471,6 +473,38 @@ static int createSkyBox(int size, GLuint &VAO)
     return 36;
 }
 
+static int createObjStrip(int size, GLuint &vertexbuffer) 
+{
+  // Read our .obj file
+  std::vector<glm::vec3> vertices;
+  std::vector<glm::vec2> uvs;
+  std::vector<glm::vec3> normals; // Won't be used at the moment.
+  bool res = loadOBJ("cube.obj", vertices, uvs, normals);
+
+  // Load it into a VBO
+
+  GLuint uvbuffer;
+  glGenBuffers(1, &vertexbuffer);
+  glGenBuffers(1, &uvbuffer);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+
+
+  glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+
+  glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+  glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
+  glEnableVertexAttribArray(1);
+
+  glBindVertexArray(0);
+
+  return vertices.size();
+}
+
 int initGL()
 {
   int res = 0;
@@ -610,7 +644,7 @@ int main(int argc, char** argv)
   std::unordered_map<GLenum, std::string> shaders;
   shaders[GL_VERTEX_SHADER]   = "vertex.glsl";
   shaders[GL_FRAGMENT_SHADER] = "fragment.glsl";
-  //shaders[GL_GEOMETRY_SHADER] = "geometry.glsl";
+
   ShaderProgram program(shaders); GL_CHECK_ERRORS;
 
   std::unordered_map<GLenum, std::string> skybox_shaders;
@@ -622,7 +656,18 @@ int main(int argc, char** argv)
   water_shaders[GL_VERTEX_SHADER]   = "water_vertex.glsl";
   water_shaders[GL_FRAGMENT_SHADER] = "water_fragment.glsl";
   ShaderProgram water_program(water_shaders); GL_CHECK_ERRORS;
-  
+
+  std::unordered_map<GLenum, std::string> arrow_shaders;
+  arrow_shaders[GL_VERTEX_SHADER]   = "arrow_vertex.glsl";
+  arrow_shaders[GL_FRAGMENT_SHADER] = "arrow_fragment.glsl";
+  arrow_shaders[GL_GEOMETRY_SHADER] = "arrow_geometry.glsl";
+  ShaderProgram arrow_program(arrow_shaders); GL_CHECK_ERRORS;
+/*
+  std::unordered_map<GLenum, std::string> obj_shaders;
+  obj_shaders[GL_VERTEX_SHADER]   = "obj_vertex.glsl";
+  obj_shaders[GL_FRAGMENT_SHADER] = "obj_fragment.glsl";
+  ShaderProgram obj_program(obj_shaders); GL_CHECK_ERRORS;
+  */
   //Создаем и загружаем геометрию поверхности
   GLuint vaoTriStrip;
   int triStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoTriStrip, 1);
@@ -632,7 +677,10 @@ int main(int argc, char** argv)
 
   GLuint vaoWaterStrip;
   int waterStripIndices = createTriStrip(TERRAIN_SIZE, TERRAIN_SIZE, 40, vaoWaterStrip, 2);
-
+/*
+  GLuint vaoObjStrip;
+  int ObjStripIndices = createObjStrip(1, vaoObjStrip);
+*/
   glViewport(0, 0, WIDTH, HEIGHT);  GL_CHECK_ERRORS;
   glEnable(GL_DEPTH_TEST);  GL_CHECK_ERRORS;
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -640,6 +688,7 @@ int main(int argc, char** argv)
   //цикл обработки сообщений и отрисовки сцены каждый кадр
   while (!glfwWindowShouldClose(window))
   {
+    float time = glfwGetTime();
     //считаем сколько времени прошло за кадр
     GLfloat currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -658,7 +707,7 @@ int main(int argc, char** argv)
     float4x4 view       = camera.GetViewMatrix();
     float4x4 projection = projectionMatrixTransposed(camera.zoom, float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
                     //модельная матрица, определяющая положение объекта в мировом пространстве
-    //float4x4 model; //начинаем с единичной матрицы
+    float4x4 modelID; //начинаем с единичной матрицы
     glm::mat4 modelSet, model;
     //загружаем uniform-переменные в шейдерную программу (одинаковые для всех параллельно запускаемых копий шейдера)
     program.SetUniform("view",       view);       GL_CHECK_ERRORS;
@@ -691,7 +740,7 @@ int main(int argc, char** argv)
     glBindVertexArray(0); GL_CHECK_ERRORS;
 
     program.StopUseShader();
-
+   
     skybox_program.StartUseShader();
 
     skybox_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
@@ -707,27 +756,60 @@ int main(int argc, char** argv)
     glBindVertexArray(0);
 
     skybox_program.StopUseShader();
+    
+    if (KEYBOARD == 1) {
+      water_program.StartUseShader();
+      water_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
+      water_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
+      water_program.SetUniform("time",       time);
+
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, textureWater);
+      water_program.SetUniform("textureWater", 0);
+
+      GLint uniformLocationWater = glGetUniformLocation(water_program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
    
+      glBindVertexArray(vaoWaterStrip);
+      for (int i = -1 ; i <= 1; i++) 
+       for (int j = -1; j <= 1; j++){
+          // Calculate the model matrix for each object and pass it to shader before drawing
+          model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE - 1) * i, 0, (TERRAIN_SIZE - 1) * j));
+          glUniformMatrix4fv(uniformLocationWater, 1, GL_FALSE, glm::value_ptr(model)); GL_CHECK_ERRORS;
+          glDrawElements(GL_TRIANGLE_STRIP, waterStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+      }
 
-    water_program.StartUseShader();
-    water_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
-    water_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
-    GLint uniformLocationWater = glGetUniformLocation(water_program.shaderProgram, modelstr.c_str()); GL_CHECK_ERRORS;
- 
-    glBindVertexArray(vaoWaterStrip);
-    for (int i = -1 ; i <= 1; i++) 
-     for (int j = -1; j <= 1; j++){
-        // Calculate the model matrix for each object and pass it to shader before drawing
-        model = glm::translate(modelSet, glm::vec3((TERRAIN_SIZE - 1) * i, 0, (TERRAIN_SIZE - 1) * j));
-        glUniformMatrix4fv(uniformLocationWater, 1, GL_FALSE, glm::value_ptr(model)); GL_CHECK_ERRORS;
-        glDrawElements(GL_TRIANGLE_STRIP, waterStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
+      glBindVertexArray(0); GL_CHECK_ERRORS;
+      water_program.StopUseShader();
     }
+/*
+    if (KEYBOARD == 2) {
+      arrow_program.StartUseShader();
+      arrow_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
+      arrow_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
+      arrow_program.SetUniform("model",      modelID);
+      glBindVertexArray(vaoTriStrip);
+      arrow_program.StopUseShader();
+    }
+  */  
+/*
+    obj_program.StartUseShader();
+    obj_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
+    obj_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
+    obj_program.SetUniform("model",      modelID);
 
-    glBindVertexArray(0); GL_CHECK_ERRORS;
+    glBindVertexArray(vaoSkyBox);
+    glDrawElements(GL_TRIANGLES, skyBoxIndices, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 
-    water_program.StopUseShader();
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vaoObjStrip);
+    glDrawArrays(GL_TRIANGLES, 0, ObjStripIndices);
 
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
 
+    obj_program.StopUseShader();
+*/
     glfwSwapBuffers(window); 
   }
 

@@ -3,6 +3,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/main.dir/main.cpp.o"
   "CMakeFiles/main.dir/Camera.cpp.o"
   "CMakeFiles/main.dir/ShaderProgram.cpp.o"
+  "CMakeFiles/main.dir/objloader.cpp.o"
   "main.pdb"
   "main"
 )

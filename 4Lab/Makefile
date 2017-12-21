@@ -231,6 +231,33 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+objloader.o: objloader.cpp.o
+
+.PHONY : objloader.o
+
+# target to build an object file
+objloader.cpp.o:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/objloader.cpp.o
+.PHONY : objloader.cpp.o
+
+objloader.i: objloader.cpp.i
+
+.PHONY : objloader.i
+
+# target to preprocess a source file
+objloader.cpp.i:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/objloader.cpp.i
+.PHONY : objloader.cpp.i
+
+objloader.s: objloader.cpp.s
+
+.PHONY : objloader.s
+
+# target to generate assembly for a file
+objloader.cpp.s:
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/objloader.cpp.s
+.PHONY : objloader.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -252,6 +279,9 @@ help:
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... objloader.o"
+	@echo "... objloader.i"
+	@echo "... objloader.s"
 .PHONY : help
 
 

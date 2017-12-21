@@ -25,5 +25,9 @@ CMakeFiles/main.dir/main.cpp.o
  /home/narek/ComputerGraphics/4Lab/ShaderProgram.h
  /home/narek/ComputerGraphics/4Lab/common.h
  /home/narek/ComputerGraphics/4Lab/main.cpp
+ /home/narek/ComputerGraphics/4Lab/objloader.hpp
  dependencies/include/GLAD/KHR/khrplatform.h
  dependencies/include/GLAD/glad/glad.h
+CMakeFiles/main.dir/objloader.cpp.o
+ /home/narek/ComputerGraphics/4Lab/objloader.cpp
+ /home/narek/ComputerGraphics/4Lab/objloader.hpp

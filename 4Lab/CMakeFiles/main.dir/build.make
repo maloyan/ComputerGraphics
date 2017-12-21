@@ -153,12 +153,37 @@ CMakeFiles/main.dir/ShaderProgram.cpp.o.provides: CMakeFiles/main.dir/ShaderProg
 CMakeFiles/main.dir/ShaderProgram.cpp.o.provides.build: CMakeFiles/main.dir/ShaderProgram.cpp.o
 
 
+CMakeFiles/main.dir/objloader.cpp.o: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/objloader.cpp.o: objloader.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/narek/ComputerGraphics/4Lab/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/main.dir/objloader.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/main.dir/objloader.cpp.o -c /home/narek/ComputerGraphics/4Lab/objloader.cpp
+
+CMakeFiles/main.dir/objloader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/objloader.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/narek/ComputerGraphics/4Lab/objloader.cpp > CMakeFiles/main.dir/objloader.cpp.i
+
+CMakeFiles/main.dir/objloader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/objloader.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/narek/ComputerGraphics/4Lab/objloader.cpp -o CMakeFiles/main.dir/objloader.cpp.s
+
+CMakeFiles/main.dir/objloader.cpp.o.requires:
+
+.PHONY : CMakeFiles/main.dir/objloader.cpp.o.requires
+
+CMakeFiles/main.dir/objloader.cpp.o.provides: CMakeFiles/main.dir/objloader.cpp.o.requires
+	$(MAKE) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/objloader.cpp.o.provides.build
+.PHONY : CMakeFiles/main.dir/objloader.cpp.o.provides
+
+CMakeFiles/main.dir/objloader.cpp.o.provides.build: CMakeFiles/main.dir/objloader.cpp.o
+
+
 # Object files for target main
 main_OBJECTS = \
 "CMakeFiles/main.dir/glad.c.o" \
 "CMakeFiles/main.dir/main.cpp.o" \
 "CMakeFiles/main.dir/Camera.cpp.o" \
-"CMakeFiles/main.dir/ShaderProgram.cpp.o"
+"CMakeFiles/main.dir/ShaderProgram.cpp.o" \
+"CMakeFiles/main.dir/objloader.cpp.o"
 
 # External object files for target main
 main_EXTERNAL_OBJECTS =
@@ -167,11 +192,12 @@ main: CMakeFiles/main.dir/glad.c.o
 main: CMakeFiles/main.dir/main.cpp.o
 main: CMakeFiles/main.dir/Camera.cpp.o
 main: CMakeFiles/main.dir/ShaderProgram.cpp.o
+main: CMakeFiles/main.dir/objloader.cpp.o
 main: CMakeFiles/main.dir/build.make
 main: /usr/lib/x86_64-linux-gnu/libGL.so
 main: /usr/lib/x86_64-linux-gnu/libglfw.so.3.2
 main: CMakeFiles/main.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/narek/ComputerGraphics/4Lab/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX executable main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/narek/ComputerGraphics/4Lab/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable main"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/main.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/cmake -E copy_directory /home/narek/ComputerGraphics/4Lab/shaders /home/narek/ComputerGraphics/4Lab
 
@@ -184,6 +210,7 @@ CMakeFiles/main.dir/requires: CMakeFiles/main.dir/glad.c.o.requires
 CMakeFiles/main.dir/requires: CMakeFiles/main.dir/main.cpp.o.requires
 CMakeFiles/main.dir/requires: CMakeFiles/main.dir/Camera.cpp.o.requires
 CMakeFiles/main.dir/requires: CMakeFiles/main.dir/ShaderProgram.cpp.o.requires
+CMakeFiles/main.dir/requires: CMakeFiles/main.dir/objloader.cpp.o.requires
 
 .PHONY : CMakeFiles/main.dir/requires
 

@@ -10,7 +10,9 @@ set(SOURCE_FILES
         Camera.h
         Camera.cpp
         ShaderProgram.h
-        ShaderProgram.cpp)
+        ShaderProgram.cpp
+        objloader.cpp
+        objloader.hpp)
 
 set(ADDITIONAL_INCLUDE_DIRS
         dependencies/include/GLAD)

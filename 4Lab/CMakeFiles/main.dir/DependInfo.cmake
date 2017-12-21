@@ -22,6 +22,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/narek/ComputerGraphics/4Lab/Camera.cpp" "/home/narek/ComputerGraphics/4Lab/CMakeFiles/main.dir/Camera.cpp.o"
   "/home/narek/ComputerGraphics/4Lab/ShaderProgram.cpp" "/home/narek/ComputerGraphics/4Lab/CMakeFiles/main.dir/ShaderProgram.cpp.o"
   "/home/narek/ComputerGraphics/4Lab/main.cpp" "/home/narek/ComputerGraphics/4Lab/CMakeFiles/main.dir/main.cpp.o"
+  "/home/narek/ComputerGraphics/4Lab/objloader.cpp" "/home/narek/ComputerGraphics/4Lab/CMakeFiles/main.dir/objloader.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
