@@ -4,7 +4,7 @@
 #include "Camera.h"
 
 //External dependencies
-#define GLFW_DLL
+//#define GLFW_DLL
 #include <GLFW/glfw3.h>
 #include <random>
 #include <stdlib.h>
@@ -15,7 +15,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "objloader.hpp"
 using namespace std;
 static const GLsizei WIDTH = 1024, HEIGHT = 1024, TERRAIN_SIZE = 513; //размеры окна
 
@@ -472,7 +471,7 @@ static int createSkyBox(int size, GLuint &VAO)
 
     return 36;
 }
-
+/*
 static int createObjStrip(int size, GLuint &vertexbuffer) 
 {
   // Read our .obj file
@@ -483,28 +482,25 @@ static int createObjStrip(int size, GLuint &vertexbuffer)
 
   // Load it into a VBO
 
-  GLuint uvbuffer;
-  glGenBuffers(1, &vertexbuffer);
-  glGenBuffers(1, &uvbuffer);
+  GLuint VBO, EBO;
+  glGenVertexArrays(1, &vertexbuffer);
+  glGenBuffers(1, &VBO);
+  glGenBuffers(1, &EBO);
   
-  glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+  glBindVertexArray(vertexbuffer);
+
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
 
-  glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, EBO);
   glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
-
-  glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-  glEnableVertexAttribArray(0);
-
-  glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 0, (void *) 0);
-  glEnableVertexAttribArray(1);
 
   glBindVertexArray(0);
 
   return vertices.size();
 }
-
+*/
 int initGL()
 {
   int res = 0;
@@ -791,24 +787,15 @@ int main(int argc, char** argv)
       glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
       arrow_program.StopUseShader();
     }
-  
-/*
+ /* 
     obj_program.StartUseShader();
     obj_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
     obj_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
     obj_program.SetUniform("model",      modelID);
 
-    glBindVertexArray(vaoSkyBox);
-    glDrawElements(GL_TRIANGLES, skyBoxIndices, GL_UNSIGNED_INT, 0);
+    glBindVertexArray(vaoObjStrip);
+    glDrawElements(GL_TRIANGLES, ObjStripIndices, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vaoObjStrip);
-    glDrawArrays(GL_TRIANGLES, 0, ObjStripIndices);
-
-    glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-
     obj_program.StopUseShader();
 */
     glfwSwapBuffers(window); 

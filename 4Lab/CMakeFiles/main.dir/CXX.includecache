@@ -75,8 +75,6 @@ glm/gtc/matrix_transform.hpp
 -
 glm/gtc/type_ptr.hpp
 -
-objloader.hpp
-/home/narek/ComputerGraphics/4Lab/objloader.hpp
 
 /home/narek/ComputerGraphics/4Lab/objloader.cpp
 vector

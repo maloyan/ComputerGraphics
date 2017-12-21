@@ -1,0 +1,1 @@
+cmake CMakeLists.txt -G 'Unix Makefiles' && make && ./main 
