@@ -39,7 +39,7 @@ GLfloat lastFrame = 0.0f;
 
 float yy[TERRAIN_SIZE][TERRAIN_SIZE];
 
-Camera camera(float3(11.193, 200, 11.9907));
+Camera camera(float3(11, 50, 11));
 
 
 
@@ -781,16 +781,17 @@ int main(int argc, char** argv)
       glBindVertexArray(0); GL_CHECK_ERRORS;
       water_program.StopUseShader();
     }
-/*
+
     if (KEYBOARD == 2) {
       arrow_program.StartUseShader();
       arrow_program.SetUniform("view",       view);       GL_CHECK_ERRORS;
       arrow_program.SetUniform("projection", projection); GL_CHECK_ERRORS;
       arrow_program.SetUniform("model",      modelID);
       glBindVertexArray(vaoTriStrip);
+      glDrawElements(GL_TRIANGLE_STRIP, triStripIndices, GL_UNSIGNED_INT, nullptr); GL_CHECK_ERRORS;
       arrow_program.StopUseShader();
     }
-  */  
+  
 /*
     obj_program.StartUseShader();
     obj_program.SetUniform("view",       view);       GL_CHECK_ERRORS;

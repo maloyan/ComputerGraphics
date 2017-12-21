@@ -83,7 +83,7 @@ void main()
     vec4 fogColor = vec4(0.5, 0.5, 0.5, 1);
     color = mix(fogColor, color, clamp(1.0 - fog, 0.0f, 1.0f));
   } else if (state == 2) {
-    color = vec4(vNormal, 1.0f);
+    color = vec4(0.5f * vNormal + vec3(0.5f, 0.5f, 0.5f), 1.0f); 
   } else {
     // деление на zFar для лучшей наглядности
     float depth = LinearizeDepth(gl_FragCoord.z) / zFar;
