@@ -1,1 +1,1 @@
-cmake CMakeLists.txt -G 'Unix Makefiles' && make && ./main 
+cmake CMakeLists.txt -G 'Unix Makefiles' && make && ./main && rm -rf CMakeCache.txt ./main  Makefile
